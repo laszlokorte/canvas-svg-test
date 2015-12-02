@@ -10,16 +10,92 @@
 
     <svg id="stage" width="800" height="600"></svg>
 
-
+    <script type="text/javascript" src="common.js"></script>
     <script type="text/javascript">
       function setup(stage) {
 
-        return function() {
+        var states = [
+          {
+            pos: {x: 200, y: 200},
+            transitions: [
+              {target: 1}
+            ]
+          },
+          {
+            pos: {x: 500, y: 480},
+            transitions: [
+              {target: 2},
+              {target: 0}
+            ]
+          },
+          {
+            pos: {x: 900, y: 280},
+            transitions: [
+              {target: 1}
+            ]
+          }
+        ];
 
+        var step = function(val, size) {
+          return Math.round(val / size) * size;
+        }
+
+        var arrowPath = function(from, to, offset) {
+          var deltaX = to.x - from.x;
+          var deltaY = to.y - from.y;
+
+          var rad = Math.atan2(deltaX, deltaY);
+          var radExit = rad * (1 + 0.1*Math.sin(rad));
+          var radEnter = rad * (1 - 0.1*Math.sin(rad));
+
+          var offsetExitX = Math.sin(radExit) * offset;
+          var offsetExitY = Math.cos(radExit) * offset;
+          var offsetEnterX = Math.sin(radEnter) * offset;
+          var offsetEnterY = Math.cos(radEnter) * offset;
+
+          var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
+          var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
+
+          return "M "+
+            (from.x+offsetExitX)+","+(from.y+offsetExitY)+
+            " q "+(adjustedDeltaX/2+deltaY/8)+","+(adjustedDeltaY/2-deltaX/8)+" "+
+            adjustedDeltaX+","+adjustedDeltaY;
+        }
+
+        var render = function() {
+          var width = stage.getAttribute('width');
+          var height = stage.getAttribute('height');
+
+          clearSVG(stage);
+          stage.setAttribute('viewBox', '0 0 '+ width + ' ' + height);
+
+          for(var i=0,j=states.length;i<j;i++) {
+            var state = states[i];
+            var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, fill: 'lightgrey', 'stroke-width': '5', stroke:'darkgrey'});
+          }
+
+          for(var i=0,j=states.length;i<j;i++) {
+            var state = states[i];
+            var transitions = state.transitions;
+
+            for(var p=0,q=transitions.length;p<q;p++) {
+              var transition = transitions[p];
+              var target = states[transition.target];
+
+              var arrow = appendToSVG(stage,'path',{'d':arrowPath(state.pos, target.pos, 80), fill: 'none', 'stroke-width': '7', stroke:'black'});
+            }
+
+          }
+        }
+
+        return function() {
+          setStageSize(stage, 1200, 600);
+
+          render();
         };
       }
 
-      var renderer = setup(document.getElementById('state'));
+      var renderer = setup(document.getElementById('stage'));
 
       renderer();
     </script>
