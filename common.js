@@ -62,6 +62,13 @@
 
   var curveArrowHead = function(curve, length) {
 
+    var totalLength = Math.sqrt(curve[4]*curve[4] + curve[5]*curve[5]);
+
+    if(totalLength < length * 1.3*1.3) {
+      length /= 1.3;
+    }
+
+
     var cx = interpQuadratric(0.8, 0, curve[2], curve[4]);
     var cy = interpQuadratric(0.8, 0, curve[3], curve[5]);
 
@@ -94,6 +101,11 @@
   };
 
 
+  var clamp = function(v, min, max) {
+    return Math.min(Math.max(min, v), max);
+  };
+
+  window.clamp = clamp;
   window.curvedConnection = curvedConnection;
   window.quadraticString = quadraticString;
   window.curveArrowHead = curveArrowHead;

@@ -16,6 +16,24 @@ canvas, svg {
   margin: 0 auto;
 }
 
-svg > path:hover {
+svg > .state {
+  fill: lightgrey;
+  stroke: darkgrey;
+  transition: stroke-width 0.1s;
+}
+
+svg > .state:hover,
+svg > .state.active {
+  stroke-width: 10pt;
+}
+
+svg > .transition {
+  fill: green;
+  stroke: green;
+  transition: fill 0.1s, stroke 0.1s;
+}
+
+svg > .transition:hover {
+  fill: blue;
   stroke: blue;
 }

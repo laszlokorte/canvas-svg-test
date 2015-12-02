@@ -64,7 +64,8 @@
 
           for(var i=0,j=states.length;i<j;i++) {
             var state = states[i];
-            var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, fill: 'lightgrey', 'stroke-width': '5', stroke:'darkgrey'});
+            var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, class: 'state' + (activeState===i ? ' active' : ''), 'stroke-width': '5'});
+            circle.setAttribute('stateIdx', i);
           }
 
           for(var i=0,j=states.length;i<j;i++) {
@@ -76,20 +77,77 @@
               var target = states[transition.target];
 
               var curve = curvedConnection(state.pos, target.pos, 80);
-              var arrow = appendToSVG(stage,'path',{'d':quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7', stroke:'black'});
-              var head = appendToSVG(stage,'polygon',{'points':curveArrowHead(curve, 50).join(','), fill: 'black'});
+
+              var arrow = appendToSVG(stage, 'g', {class:'transition'});
+              var line = appendToSVG(arrow,'path',{'d':quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
+              var head = appendToSVG(arrow,'polygon',{'points':curveArrowHead(curve, 50).join(',')});
             }
           }
         }
 
+        var pt = stage.createSVGPoint();
+
+        function cursorPoint(evt){
+          pt.x = evt.clientX; pt.y = evt.clientY;
+          return pt.matrixTransform(stage.getScreenCTM().inverse());
+        }
+
+        var activeState = null;
+        var mouseOffset = {x:0,y:0};
+        var oldPos = {x:0,y:0};
+        var moveListener = function(evtMove) {
+          evtMove.preventDefault();
+          var cursor = cursorPoint(evtMove);
+
+          states[activeState].pos.x = clamp(oldPos.x + cursor.x - mouseOffset.x, 0, 1200);
+          states[activeState].pos.y = clamp(oldPos.y + cursor.y - mouseOffset.y, 0, 600);
+
+          render();
+        };
+
+        var releaseListener = function(evtUp) {
+          evtUp.preventDefault();
+
+          activeState = null;
+          mouseOffset.x = 0;
+          mouseOffset.y = 0;
+          oldPos.x = 0;
+          oldPos.y = 0;
+
+          document.removeEventListener('mousemove', moveListener);
+          document.removeEventListener('mouseup', releaseListener);
+
+          render();
+        };
+
+        stage.addEventListener('mousedown', function(evtDown) {
+          evtDown.preventDefault();
+
+          var stateIdx = evtDown.target.getAttribute('stateIdx');
+          if(stateIdx !== null) {
+            activeState = parseInt(stateIdx, 10);
+            var cursor = cursorPoint(evtDown);
+            mouseOffset.x = cursor.x;
+            mouseOffset.y = cursor.y;
+            oldPos.x = states[activeState].pos.x;
+            oldPos.y = states[activeState].pos.y;
+
+            render();
+
+            document.addEventListener('mouseup', releaseListener);
+            document.addEventListener('mousemove', moveListener);
+          }
+        });
+
         return function() {
           setStageSize(stage, 1200, 600);
-
           render();
         };
       }
 
       var renderer = setup(document.getElementById('stage'));
+
+
 
       renderer();
     </script>

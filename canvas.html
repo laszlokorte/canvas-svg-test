@@ -21,15 +21,37 @@
         var states = [
           {
             pos: {x: 200, y: 200},
-            transitions: []
+            transitions: [
+              {target: 1}
+            ]
           },
           {
             pos: {x: 500, y: 480},
-            transitions: []
+            transitions: [
+              {target: 2},
+              {target: 0}
+            ]
           },
           {
             pos: {x: 900, y: 280},
-            transitions: []
+            transitions: [
+              {target: 1}
+            ]
+          },
+          {
+            pos: {x: 600, y: 80},
+            transitions: [
+              {target: 0},
+              {target: 2}
+            ]
+          }
+          ,
+          {
+            pos: {x: 1000, y: 80},
+            transitions: [
+              {target: 0},
+              {target: 2}
+            ]
           }
         ];
 
@@ -50,6 +72,42 @@
             ctx.lineWidth = 5;
             ctx.strokeStyle = 'darkgrey';
             ctx.stroke();
+          }
+
+          for(var i=0,j=states.length;i<j;i++) {
+            var state = states[i];
+            var transitions = state.transitions;
+
+            for(var p=0, q=transitions.length; p<q; p++) {
+              var transition = transitions[p];
+              var target = states[transition.target];
+
+              var curve = curvedConnection(state.pos, target.pos, 80);
+
+              var arrowHead = curveArrowHead(curve, 50);
+
+              ctx.beginPath();
+              ctx.moveTo(curve[0], curve[1]);
+              ctx.quadraticCurveTo(
+                curve[0]+curve[2],
+                curve[1]+curve[3],
+                curve[0]+curve[4],
+                curve[1]+curve[5]
+              );
+
+              ctx.strokeStyle = 'green';
+              ctx.lineWidth = 8;
+
+              ctx.stroke();
+
+              ctx.beginPath();
+              ctx.moveTo(arrowHead[0], arrowHead[1]);
+              ctx.lineTo(arrowHead[2], arrowHead[3]);
+              ctx.lineTo(arrowHead[4], arrowHead[5]);
+
+              ctx.fillStyle = 'green';
+              ctx.fill();
+            }
           }
         }
 
