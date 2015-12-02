@@ -41,6 +41,14 @@
               {target: 2}
             ]
           }
+          ,
+          {
+            pos: {x: 1000, y: 80},
+            transitions: [
+              {target: 0},
+              {target: 2}
+            ]
+          }
         ];
 
         var step = function(val, size) {
@@ -67,9 +75,9 @@
               var transition = transitions[p];
               var target = states[transition.target];
 
-              var curve = curvedConnection(state.pos, target.pos, 90);
+              var curve = curvedConnection(state.pos, target.pos, 80);
               var arrow = appendToSVG(stage,'path',{'d':quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7', stroke:'black'});
-              var head = appendToSVG(stage,'circle',{'cx':curve[0]+curve[4], 'cy':curve[1]+curve[5], r:10, fill: 'black'});
+              var head = appendToSVG(stage,'polygon',{'points':curveArrowHead(curve, 50).join(','), fill: 'black'});
             }
           }
         }

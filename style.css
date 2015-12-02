@@ -15,3 +15,7 @@ canvas, svg {
   height: auto;
   margin: 0 auto;
 }
+
+svg > path:hover {
+  stroke: blue;
+}
