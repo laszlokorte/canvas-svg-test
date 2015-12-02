@@ -40,28 +40,6 @@
           return Math.round(val / size) * size;
         }
 
-        var arrowPath = function(from, to, offset) {
-          var deltaX = to.x - from.x;
-          var deltaY = to.y - from.y;
-
-          var rad = Math.atan2(deltaX, deltaY);
-          var radExit = rad * (1 + 0.1*Math.sin(rad));
-          var radEnter = rad * (1 - 0.1*Math.sin(rad));
-
-          var offsetExitX = Math.sin(radExit) * offset;
-          var offsetExitY = Math.cos(radExit) * offset;
-          var offsetEnterX = Math.sin(radEnter) * offset;
-          var offsetEnterY = Math.cos(radEnter) * offset;
-
-          var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
-          var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
-
-          return "M "+
-            (from.x+offsetExitX)+","+(from.y+offsetExitY)+
-            " q "+(adjustedDeltaX/2+deltaY/8)+","+(adjustedDeltaY/2-deltaX/8)+" "+
-            adjustedDeltaX+","+adjustedDeltaY;
-        }
-
         var render = function() {
           var width = stage.getAttribute('width');
           var height = stage.getAttribute('height');
@@ -82,9 +60,8 @@
               var transition = transitions[p];
               var target = states[transition.target];
 
-              var arrow = appendToSVG(stage,'path',{'d':arrowPath(state.pos, target.pos, 80), fill: 'none', 'stroke-width': '7', stroke:'black'});
+              var arrow = appendToSVG(stage,'path',{'d':quadraticString.apply(null, curvedConnection(state.pos, target.pos, 80)), fill: 'none', 'stroke-width': '7', stroke:'black'});
             }
-
           }
         }
 
