@@ -1,0 +1,17 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+body > h1:first-child {
+  text-align: center;
+}
+
+canvas, svg {
+  display: block;
+  border: 2px solid pink;
+  width: 50%;
+  height: auto;
+  margin: 0 auto;
+}
