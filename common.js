@@ -31,20 +31,22 @@
   var curvedConnection = function(from, to, offset) {
     var deltaX = to.x - from.x;
     var deltaY = to.y - from.y;
+    var distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
 
     var rad = Math.atan2(deltaX, deltaY);
-    var radExit = rad * (1 + 0.2*Math.sin(rad));
-    var radEnter = rad * (1 - 0.2*Math.sin(rad));
+    var radExit = rad * (1 + 0.2*Math.sin(rad*0.9));
+    var radEnter = rad * (1 - 0.2*Math.sin(rad*0.9));
 
-    var offsetExitX = Math.sin(radExit) * offset;
-    var offsetExitY = Math.cos(radExit) * offset;
-    var offsetEnterX = Math.sin(radEnter) * (offset + 20);
-    var offsetEnterY = Math.cos(radEnter) * (offset + 20);
+    var offsetMultiplier = distance-40 > offset*2 ? 1 : 0.7;
+
+    var offsetExitX = Math.sin(radExit) * offset * offsetMultiplier;
+    var offsetExitY = Math.cos(radExit) * offset * offsetMultiplier;
+    var offsetEnterX = Math.sin(radEnter) * (offset + 20) * offsetMultiplier;
+    var offsetEnterY = Math.cos(radEnter) * (offset + 20) * offsetMultiplier;
 
     var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
     var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
 
-    var distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
     var bending = distance/(8000);
 
 
