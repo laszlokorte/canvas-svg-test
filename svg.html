@@ -33,6 +33,13 @@
             transitions: [
               {target: 1}
             ]
+          },
+          {
+            pos: {x: 600, y: 80},
+            transitions: [
+              {target: 0},
+              {target: 2}
+            ]
           }
         ];
 
@@ -60,7 +67,9 @@
               var transition = transitions[p];
               var target = states[transition.target];
 
-              var arrow = appendToSVG(stage,'path',{'d':quadraticString.apply(null, curvedConnection(state.pos, target.pos, 80)), fill: 'none', 'stroke-width': '7', stroke:'black'});
+              var curve = curvedConnection(state.pos, target.pos, 90);
+              var arrow = appendToSVG(stage,'path',{'d':quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7', stroke:'black'});
+              var head = appendToSVG(stage,'circle',{'cx':curve[0]+curve[4], 'cy':curve[1]+curve[5], r:10, fill: 'black'});
             }
           }
         }
