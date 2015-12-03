@@ -59,6 +59,8 @@
           clearSVG(stage);
           stage.setAttribute('viewBox', cam.x + ' '+cam.y+' '+ width + ' ' + height);
 
+          appendToSVG(stage,'rect',{x:0,y:0,width:width,height: height,fill:'white'});
+
           states.forEach(function(state, i) {
             var state = states[i];
 
