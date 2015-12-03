@@ -40,7 +40,7 @@
         var cam = {x:0,y:0};
 
         var renderState = function(stage, index, state, active) {
-          var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, class: 'state' + (active ? ' active' : ''), 'stroke-width': '5'});
+          var circle = appendToSVG(stage,'circle',{cx:state.pos.x, cy:state.pos.y, r:70, class: 'state' + (active ? ' active' : ''), 'stroke-width': '5'});
           circle.setAttribute('stateIdx', index);
         }
 
@@ -48,8 +48,8 @@
           var curve = curvedConnection(source.pos, target.pos, 80);
 
           var arrow = appendToSVG(stage, 'g', {class:'transition'});
-          var line = appendToSVG(arrow,'path',{'d':quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
-          var head = appendToSVG(arrow,'polygon',{'points':curveArrowHead(curve, 50).join(',')});
+          var line = appendToSVG(arrow,'path',{d:quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
+          var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(',')});
         }
 
         var render = function() {
