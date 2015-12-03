@@ -1,4 +1,6 @@
 (function(window) {
+
+  // set the width and height of an DOM Element
   var setSize = function(stage, w, h) {
     stage.setAttribute('width', w);
     stage.setAttribute('height', h);
@@ -24,10 +26,15 @@
     return node.appendChild(el);
   }
 
+  // remove all child element of a DOM Node
   var clear = function(node){
     while (node.lastChild) node.removeChild(node.lastChild);
   }
 
+  // create a quadratic bezier path between two points
+  // from and to are {x:,y:}, offset is a radius around
+  // the points that should not be crossed by the line
+  // returns [startx, starty, ctrlX, ctrlY, endX, endY]
   var curvedConnection = function(from, to, offset) {
     var deltaX = to.x - from.x;
     var deltaY = to.y - from.y;
@@ -66,11 +73,20 @@
     ];
   };
 
+  // One Dimensional Qudratic Bezier interpolation
+  // t: parameter btween 0 and 1
+  // s: start value
+  // c: control value
+  // e: end value
   var interpQuadratric = function(t, s, c, e) {
     var tInv = (1 - t);
     return tInv * tInv * s + 2 * tInv * t * c + t * t * e;
   }
 
+  // create a triangle of given length(=height) for the given curve
+  // curve is expetec to be a qudratic bezier curve array:
+  // [startx, starty, ctrlX, ctrlY, endX, endY]
+  // returns [x1,y1,x2,y2,x3,y3]
   var curveArrowHead = function(curve, length) {
 
     var totalLength = Math.sqrt(curve[4]*curve[4] + curve[5]*curve[5]);
@@ -78,7 +94,6 @@
     if(totalLength < length * 1.3*1.3) {
       length /= 1.3;
     }
-
 
     var cx = interpQuadratric(0.8, 0, curve[2], curve[4]);
     var cy = interpQuadratric(0.8, 0, curve[3], curve[5]);
@@ -101,6 +116,7 @@
     ];
   }
 
+  // convert the given quadratic bezier points into a a string usable in SVG paths
   var quadraticString = function(startX, startY, ctrlX, ctrlY, endX, endY) {
     return [
       "M",
@@ -111,11 +127,18 @@
     ].join(' ');
   };
 
-
+  // clamp the value v between min and max
   var clamp = function(v, min, max) {
     return Math.min(Math.max(min, v), max);
   };
 
+  // setup mouse event handler to enable drag drop behaviour
+  // target: the element to bind the listeners to
+  // pos: a function (evt)->{x,y} the convert the event into a position
+  // hit: a function (evt, {x,y}) -> int to convert a position into an identifier, -1 for camera panning
+  // start: a callback function which is called when the dragging starts
+  // move: a callback function which is called when the mouse moves during dragging
+  // end: a callback function which is called when dragging stops
   var setupDrag = function(target, pos, hit, start, move, end) {
     var dragState = {
       activeState : null,
@@ -165,12 +188,15 @@
     return dragState;
   };
 
+  // calulate diagonal distance between point a and b
+  // a and b are {x,y}
   var vecDistance = function(a,b) {
     var dx = a.x - b.x;
     var dy = a.y - b.y;
     return Math.sqrt(dx*dx+dy*dy);
   }
 
+  // return some test graph to render
   var loadFSM = function() {
     return [
       {
@@ -211,6 +237,10 @@
     ];
   };
 
+  // creates a callback function to be used as move callback in setupDrag
+  // states: the graph object containing the draggable states
+  // render: the render function to be called after data changes
+  // pan: the callback being called for panning the camera
   var createDragMoveHandler = function(states, render, pan) {
     return function(element, deltaX, deltaY) {
       if(element === -1) {
@@ -226,6 +256,9 @@
     };
   };
 
+  // create a callback function to be used in createDragMoveHandler for panning
+  // cam: object which x and y properties should be set
+  // render: render function to be called when data changes
   var createPanHandler = function(cam, render) {
     return function(dx, dy) {
       cam.x -= dx;
