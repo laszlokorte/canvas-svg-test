@@ -209,7 +209,7 @@
   // start: a callback function which is called when the dragging starts
   // move: a callback function which is called when the mouse moves during dragging
   // end: a callback function which is called when dragging stops
-  var setupDrag = function(target, pos, hit, start, move, end, zoom) {
+  var stupMouseHandler = function(target, pos, hit, start, move, end, zoom, doubleClick) {
     var dragState = {
       activeState : null,
     };
@@ -265,6 +265,12 @@
       zoom && zoom(factor, cursorNew);
     });
 
+    target.addEventListener('dblclick', function(dblClickEvt) {
+      dblClickEvt.preventDefault();
+
+      doubleClick && doubleClick();
+    });
+
     return dragState;
   };
 
@@ -310,8 +316,7 @@
           {target: 0, condition: 0},
           {target: 2, condition: 1}
         ]
-      }
-      ,
+      },
       {
         name: "E",
         pos: {x: 400, y: -220},
@@ -324,7 +329,7 @@
     ];
   };
 
-  // creates a callback function to be used as move callback in setupDrag
+  // creates a callback function to be used as move callback in stupMouseHandler
   // states: the graph object containing the draggable states
   // render: the render function to be called after data changes
   // pan: the callback being called for panning the camera
@@ -411,6 +416,17 @@
     };
   };
 
+  var arangeStates = function(states) {
+    var count = states.length;
+
+    for(var i=0;i<count;i++) {
+      var angle = -Math.PI/2 - Math.PI * 2 * i / count;
+      states[i].pos.x = Math.cos(angle) * 300;
+      states[i].pos.y = Math.sin(angle) * 300;
+    }
+  };
+
+  window.arangeStates = arangeStates;
   window.createZoomHandler = createZoomHandler;
   window.calculateTransitionPivotAngle = calculateTransitionPivotAngle;
   window.createCamera = createCamera;
@@ -419,7 +435,7 @@
   window.createDragMoveHandler = createDragMoveHandler;
   window.loadFSM = loadFSM;
   window.vecDistance = vecDistance;
-  window.setupDrag = setupDrag;
+  window.stupMouseHandler = stupMouseHandler;
   window.clamp = clamp;
   window.curvedConnection = curvedConnection;
   window.cubicString = cubicString;

@@ -153,7 +153,13 @@
 
         var onZoom = createZoomHandler(cam, render, 0.3, 3, panHandler);
 
-        var dragState = setupDrag(stage, eventToCursorPosition, hitTest,onDragStart, onDragMove, onDragEnd, onZoom);
+        var onDoubleClick = function() {
+          arangeStates(states);
+
+          render();
+        };
+
+        var dragState = stupMouseHandler(stage, eventToCursorPosition, hitTest,onDragStart, onDragMove, onDragEnd, onZoom, onDoubleClick);
 
         return function() {
           setStageSize(stage, 1200, 600);
