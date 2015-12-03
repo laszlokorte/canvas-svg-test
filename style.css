@@ -12,6 +12,7 @@ canvas, svg {
   display: block;
   border: 2px solid pink;
   width: 50%;
+  max-height: 100%;
   height: auto;
   margin: 0 auto;
 }
