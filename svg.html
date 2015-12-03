@@ -51,8 +51,9 @@
           var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
           var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(',')});
 
+          var aligns = ['start','middle','end'];
           var textPosition = curveLabelPosition(curve, 30);
-          var text = appendToSVG(arrow,'text',{x:textPosition.x, y:textPosition.y,'class':'label'}, label);
+          var text = appendToSVG(arrow,'text',{x:textPosition.x, y:textPosition.y,'class':'label',style:'text-anchor:'+aligns[1+textPosition.align]}, label);
         }
 
         var render = function() {

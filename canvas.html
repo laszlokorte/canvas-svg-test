@@ -81,7 +81,7 @@
 
           var textPosition = curveLabelPosition(curve, 30);
           ctx.font = "25pt Arial";
-          ctx.textAlign = 'center';
+          ctx.textAlign = textPosition.align;
           ctx.textBaseline = 'middle';
           ctx.fillText(label,textPosition.x,textPosition.y);
         };

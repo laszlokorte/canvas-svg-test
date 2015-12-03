@@ -171,7 +171,11 @@
     var offsetNormX = offsetx/offsetLength;
     var offsetNormY = offsety/offsetLength;
 
-    return {x: cx + offsetNormX * offset, y: cy + offsetNormY * offset};
+    return {
+      x: cx + offsetNormX * offset,
+      y: cy + offsetNormY * offset,
+      align: Math.abs(offsetNormY/offsetNormX) > 3 ? 0 : (offsetNormX >= 0 ? -1:1)
+    };
   };
 
   // convert the given cubic bezier points into a a string usable in SVG paths
