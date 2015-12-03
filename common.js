@@ -46,6 +46,8 @@
 
     var offsetMultiplierEnter = 1;
     var offsetMultiplierExit = 1;
+    var reflexive = distance < offset*2;
+
     if (distance < offset*2) {
       offsetMultiplierEnter = 0.2;
       offsetMultiplierExit = 0.5;
@@ -64,12 +66,48 @@
 
     var bending = Math.sqrt(distance)/(400);
 
+    var ctrlPointX = (adjustedDeltaX/2+adjustedDeltaY*bending);
+    var ctrlPointY = (adjustedDeltaY/2-adjustedDeltaX*bending);
+
+    var startX = from.x+offsetExitX;
+    var startY = from.y+offsetExitY;
+    var ctrlAX = ctrlPointX;
+    var ctrlAY = ctrlPointY;
+    var ctrlBX = ctrlPointX;
+    var ctrlBY = ctrlPointY;
+    var endX = adjustedDeltaX;
+    var endY = adjustedDeltaY;
+
+    if(reflexive) {
+      var samePoint = Math.abs(distance) < 1;
+      var rotatedDeltaX = !samePoint ? -deltaY / distance : -1;
+      var rotatedDeltaY = !samePoint ?  deltaX / distance : 0;
+      var refOffsetX = rotatedDeltaX * offset;
+      var refOffsetY = rotatedDeltaY * offset;
+
+      var extraX = deltaX*offset/(distance||1)/2;
+      var extraY = deltaY*offset/(distance||1)/2;
+
+      if (samePoint) {
+        deltaY += offset;
+        extraY += offset;
+      }
+
+      startX = from.x + refOffsetX;
+      startY = from.y + refOffsetY - (samePoint ? offset/2 : 0);
+      ctrlAX = refOffsetX - extraX;
+      ctrlAY = refOffsetY - extraY;
+      ctrlBX = deltaX + refOffsetX + extraX;
+      ctrlBY = deltaY + refOffsetY + extraY;
+      endX = deltaX + rotatedDeltaX*(!samePoint ? 20 : 10) ;
+      endY = deltaY + rotatedDeltaY*20;
+    }
 
     return [
-      from.x+offsetExitX, from.y+offsetExitY,
-      (adjustedDeltaX/2+adjustedDeltaY*bending), (adjustedDeltaY/2-adjustedDeltaX*bending),
-      (adjustedDeltaX/2+adjustedDeltaY*bending), (adjustedDeltaY/2-adjustedDeltaX*bending),
-      adjustedDeltaX, adjustedDeltaY
+      startX, startY,
+      ctrlAX, ctrlAY,
+      ctrlBX, ctrlBY,
+      endX, endY
     ];
   };
 
@@ -98,8 +136,8 @@
       length /= 1.3;
     }
 
-    var cx = interpCubic(0.8, 0, curve[2], curve[4], curve[6]);
-    var cy = interpCubic(0.8, 0, curve[3], curve[5], curve[7]);
+    var cx = interpCubic(0.9, 0, curve[2], curve[4], curve[6]);
+    var cy = interpCubic(0.9, 0, curve[3], curve[5], curve[7]);
 
     var angle = Math.atan2(curve[6] - cx, curve[7] - cy);
     var extend = Math.PI/4;
