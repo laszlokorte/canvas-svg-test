@@ -44,12 +44,15 @@
           circle.setAttribute('stateIdx', index);
         }
 
-        var renderTransition = function(stage, source, target) {
+        var renderTransition = function(stage, source, target, label) {
           var curve = curvedConnection(source.pos, target.pos, 80);
 
           var arrow = appendToSVG(stage, 'g', {class:'transition'});
           var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
           var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(',')});
+
+          var textPosition = curveLabelPosition(curve, 30);
+          var text = appendToSVG(arrow,'text',{x:textPosition.x, y:textPosition.y,'style':'font-size: 25pt;text-anchor: middle;alignment-baseline:middle;'}, ''+label);
         }
 
         var render = function() {
@@ -71,7 +74,7 @@
             state.transitions.forEach(function(transition) {
               var target = states[transition.target];
 
-              renderTransition(stage, state, target);
+              renderTransition(stage, state, target, transition.condition);
             });
           });
         }

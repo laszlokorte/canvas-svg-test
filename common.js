@@ -155,7 +155,24 @@
       tipX - Math.sin(angleB) * length,
       tipY - Math.cos(angleB) * length,
     ];
-  }
+  };
+
+  var curveLabelPosition = function(curve, offset) {
+    var t = 0.5;
+    var cx = curve[0] + interpCubic(t, 0, curve[2], curve[4], curve[6]);
+    var cy = curve[1] + interpCubic(t, 0, curve[3], curve[5], curve[7]);
+
+    var rcx = curve[0] + curve[6]/2;
+    var rcy = curve[1] + curve[7]/2;
+
+    var offsetx = cx - rcx;
+    var offsety = cy - rcy;
+    var offsetLength = Math.sqrt(offsetx*offsetx + offsety*offsety);
+    var offsetNormX = offsetx/offsetLength;
+    var offsetNormY = offsety/offsetLength;
+
+    return {x: cx + offsetNormX * offset, y: cy + offsetNormY * offset};
+  };
 
   // convert the given cubic bezier points into a a string usable in SVG paths
   var cubicString = function(startX, startY, ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, endX, endY) {
@@ -244,36 +261,36 @@
       {
         pos: {x: 200, y: 200},
         transitions: [
-          {target: 1},
-          {target: 0}
+          {target: 1, condition: 0},
+          {target: 0, condition: 1}
         ]
       },
       {
         pos: {x: 500, y: 480},
         transitions: [
-          {target: 2},
-          {target: 0}
+          {target: 2, condition: 1},
+          {target: 0, condition: 0}
         ]
       },
       {
         pos: {x: 900, y: 280},
         transitions: [
-          {target: 1}
+          {target: 1, condition: 1}
         ]
       },
       {
         pos: {x: 600, y: 80},
         transitions: [
-          {target: 0},
-          {target: 2}
+          {target: 0, condition: 0},
+          {target: 2, condition: 1}
         ]
       }
       ,
       {
         pos: {x: 1000, y: 80},
         transitions: [
-          {target: 0},
-          {target: 2}
+          {target: 0, condition: 1},
+          {target: 2, condition: 0}
         ]
       }
     ];
@@ -309,6 +326,7 @@
     };
   };
 
+  window.curveLabelPosition = curveLabelPosition;
   window.createPanHandler = createPanHandler;
   window.createDragMoveHandler = createDragMoveHandler;
   window.loadFSM = loadFSM;
