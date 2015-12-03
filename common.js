@@ -41,8 +41,8 @@
     var distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
 
     var rad = Math.atan2(deltaX, deltaY);
-    var radExit = rad + 0.3;
-    var radEnter = rad - 0.3;
+    var radExit = rad + 0.25;
+    var radEnter = rad - 0.25;
 
     var offsetMultiplierEnter = 1;
     var offsetMultiplierExit = 1;
@@ -62,7 +62,7 @@
     var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
     var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
 
-    var bending = Math.sqrt(distance)/(200);
+    var bending = Math.sqrt(distance)/(400);
 
 
     return [
