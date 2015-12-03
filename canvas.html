@@ -57,11 +57,13 @@
 
           ctx.beginPath();
           ctx.moveTo(curve[0], curve[1]);
-          ctx.quadraticCurveTo(
+          ctx.bezierCurveTo(
             curve[0]+curve[2],
             curve[1]+curve[3],
             curve[0]+curve[4],
-            curve[1]+curve[5]
+            curve[1]+curve[5],
+            curve[0]+curve[6],
+            curve[1]+curve[7]
           );
 
           ctx.strokeStyle = 'green';

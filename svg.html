@@ -48,7 +48,7 @@
           var curve = curvedConnection(source.pos, target.pos, 80);
 
           var arrow = appendToSVG(stage, 'g', {class:'transition'});
-          var line = appendToSVG(arrow,'path',{d:quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
+          var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
           var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(',')});
         }
 

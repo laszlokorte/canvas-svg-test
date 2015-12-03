@@ -31,7 +31,7 @@
     while (node.lastChild) node.removeChild(node.lastChild);
   }
 
-  // create a quadratic bezier path between two points
+  // create a cubic bezier path between two points
   // from and to are {x:,y:}, offset is a radius around
   // the points that should not be crossed by the line
   // returns [startx, starty, ctrlX, ctrlY, endX, endY]
@@ -41,8 +41,8 @@
     var distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
 
     var rad = Math.atan2(deltaX, deltaY);
-    var radExit = rad * (1 + 0.2*Math.sin(rad*0.9));
-    var radEnter = rad * (1 - 0.2*Math.sin(rad*0.9));
+    var radExit = rad + 0.3;
+    var radEnter = rad - 0.3;
 
     var offsetMultiplierEnter = 1;
     var offsetMultiplierExit = 1;
@@ -62,25 +62,28 @@
     var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
     var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
 
-    var bending = distance/(8000);
+    var bending = Math.sqrt(distance)/(200);
 
 
     return [
       from.x+offsetExitX, from.y+offsetExitY,
-      (adjustedDeltaX/2+deltaY*bending), (adjustedDeltaY/2-deltaX*bending),
-      adjustedDeltaX, adjustedDeltaY,
-      distance < 10
+      (adjustedDeltaX/2+adjustedDeltaY*bending), (adjustedDeltaY/2-adjustedDeltaX*bending),
+      (adjustedDeltaX/2+adjustedDeltaY*bending), (adjustedDeltaY/2-adjustedDeltaX*bending),
+      adjustedDeltaX, adjustedDeltaY
     ];
   };
 
-  // One Dimensional Qudratic Bezier interpolation
+  // One Dimensional Cubic Bezier interpolation
   // t: parameter btween 0 and 1
   // s: start value
   // c: control value
   // e: end value
-  var interpQuadratric = function(t, s, c, e) {
+  var interpCubic = function(t, s, c1, c2, e) {
     var tInv = (1 - t);
-    return tInv * tInv * s + 2 * tInv * t * c + t * t * e;
+    return tInv * tInv * tInv * s
+      + 3 * tInv * tInv * t * c1
+      + 3 * tInv * t * t * c2
+      + t * t * t * e;
   }
 
   // create a triangle of given length(=height) for the given curve
@@ -89,22 +92,22 @@
   // returns [x1,y1,x2,y2,x3,y3]
   var curveArrowHead = function(curve, length) {
 
-    var totalLength = Math.sqrt(curve[4]*curve[4] + curve[5]*curve[5]);
+    var totalLength = Math.sqrt(curve[6]*curve[6] + curve[7]*curve[7]);
 
     if(totalLength < length * 1.3*1.3) {
       length /= 1.3;
     }
 
-    var cx = interpQuadratric(0.8, 0, curve[2], curve[4]);
-    var cy = interpQuadratric(0.8, 0, curve[3], curve[5]);
+    var cx = interpCubic(0.8, 0, curve[2], curve[4], curve[6]);
+    var cy = interpCubic(0.8, 0, curve[3], curve[5], curve[7]);
 
-    var angle = Math.atan2(curve[4] - cx, curve[5] - cy);
+    var angle = Math.atan2(curve[6] - cx, curve[7] - cy);
     var extend = Math.PI/4;
 
     var angleA = angle + extend / 2;
     var angleB = angle - extend / 2;
-    var tipX = curve[0] + curve[4] + Math.sin(angle) * length/2;
-    var tipY = curve[1] + curve[5] + Math.cos(angle) * length/2;
+    var tipX = curve[0] + curve[6] + Math.sin(angle) * length/2;
+    var tipY = curve[1] + curve[7] + Math.cos(angle) * length/2;
 
     return [
       tipX,
@@ -116,13 +119,14 @@
     ];
   }
 
-  // convert the given quadratic bezier points into a a string usable in SVG paths
-  var quadraticString = function(startX, startY, ctrlX, ctrlY, endX, endY) {
+  // convert the given cubic bezier points into a a string usable in SVG paths
+  var cubicString = function(startX, startY, ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, endX, endY) {
     return [
       "M",
       [startX, startY].join(','),
-      "q",
-      [ctrlX, ctrlY].join(','),
+      "c",
+      [ctrl1X, ctrl1Y].join(','),
+      [ctrl2X, ctrl2Y].join(','),
       [endX, endY].join(','),
     ].join(' ');
   };
@@ -274,7 +278,7 @@
   window.setupDrag = setupDrag;
   window.clamp = clamp;
   window.curvedConnection = curvedConnection;
-  window.quadraticString = quadraticString;
+  window.cubicString = cubicString;
   window.curveArrowHead = curveArrowHead;
   window.setStageSize = setSize;
   window.appendToSVG = appendTo;
