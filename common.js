@@ -422,7 +422,7 @@
     for(var i=0;i<count;i++) {
       var angle = -Math.PI/2 - Math.PI * 2 * i / count;
       states[i].pos.x = Math.cos(angle) * 300;
-      states[i].pos.y = Math.sin(angle) * 300;
+      states[i].pos.y = Math.sin(angle) * 300 + 70;
     }
   };
 
