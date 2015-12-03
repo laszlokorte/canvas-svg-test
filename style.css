@@ -42,3 +42,9 @@ svg > .transition:hover {
   fill: blue;
   stroke: blue;
 }
+
+svg > .transition > .label {
+  font-size: 25pt;
+  text-anchor: middle;
+  alignment-baseline:middle;
+}

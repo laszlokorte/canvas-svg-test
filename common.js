@@ -326,6 +326,11 @@
     };
   };
 
+  var createCamera = function() {
+    return {x:0,y:0};
+  };
+
+  window.createCamera = createCamera;
   window.curveLabelPosition = curveLabelPosition;
   window.createPanHandler = createPanHandler;
   window.createDragMoveHandler = createDragMoveHandler;

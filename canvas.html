@@ -38,7 +38,7 @@
     <script type="text/javascript">
       var setup = function(stage) {
         var states = loadFSM();
-        var cam = {x:0,y:0};
+        var cam = createCamera();
 
         var renderState = function(ctx, state, active) {
           ctx.beginPath();
@@ -50,7 +50,7 @@
           ctx.stroke();
         };
 
-        var renderTransition = function(ctx, source, target) {
+        var renderTransition = function(ctx, source, target, label) {
           var curve = curvedConnection(source.pos, target.pos, 80);
 
           var arrowHead = curveArrowHead(curve, 50);
@@ -78,6 +78,12 @@
 
           ctx.fillStyle = 'green';
           ctx.fill();
+
+          var textPosition = curveLabelPosition(curve, 30);
+          ctx.font = "25pt Arial";
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label,textPosition.x,textPosition.y);
         };
 
         var render = function() {
@@ -98,7 +104,7 @@
           states.forEach(function(state) {
             state.transitions.forEach(function(transition) {
               var target = states[transition.target];
-              renderTransition(ctx, state, target);
+              renderTransition(ctx, state, target, ''+transition.condition);
             })
           });
         };

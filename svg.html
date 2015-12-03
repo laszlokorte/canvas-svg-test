@@ -37,7 +37,7 @@
       var setup = function(stage) {
         var states = loadFSM();
 
-        var cam = {x:0,y:0};
+        var cam = createCamera();
 
         var renderState = function(stage, index, state, active) {
           var circle = appendToSVG(stage,'circle',{cx:state.pos.x, cy:state.pos.y, r:70, class: 'state' + (active ? ' active' : ''), 'stroke-width': '5'});
@@ -52,7 +52,7 @@
           var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(',')});
 
           var textPosition = curveLabelPosition(curve, 30);
-          var text = appendToSVG(arrow,'text',{x:textPosition.x, y:textPosition.y,'style':'font-size: 25pt;text-anchor: middle;alignment-baseline:middle;'}, ''+label);
+          var text = appendToSVG(arrow,'text',{x:textPosition.x, y:textPosition.y,'class':'label'}, label);
         }
 
         var render = function() {
@@ -60,31 +60,34 @@
           var height = stage.getAttribute('height');
 
           clearSVG(stage);
-          stage.setAttribute('viewBox', cam.x + ' '+cam.y+' '+ width + ' ' + height);
+          stage.setAttribute('viewBox', [
+            cam.x, cam.y, width, height
+          ].join(' '));
 
           appendToSVG(stage,'rect',{x:0,y:0,width:width,height: height,fill:'white'});
 
           states.forEach(function(state, i) {
             var state = states[i];
 
-            renderState(stage, i, state, dragState.activeState===i);
+            renderState(stage, i, state,
+              dragState.activeState === i);
           });
 
           states.forEach(function(state) {
             state.transitions.forEach(function(transition) {
               var target = states[transition.target];
 
-              renderTransition(stage, state, target, transition.condition);
+              renderTransition(stage, state, target, ''+transition.condition);
             });
           });
         }
-
 
         var eventToCursorPosition = (function() {
           var pt = stage.createSVGPoint();
 
           return function(evt){
-            pt.x = evt.clientX; pt.y = evt.clientY;
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
             return pt.matrixTransform(stage.getScreenCTM().inverse());
           };
         })();
@@ -96,7 +99,6 @@
 
         var hitTest = function(evt, pos) {
           var idx = evt.target.getAttribute('stateIdx');
-
           return idx ? parseInt(idx, 10) : -1;
         };
 
