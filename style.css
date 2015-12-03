@@ -11,9 +11,14 @@ body > h1:first-child {
 canvas, svg {
   display: block;
   border: 2px solid pink;
-  width: 50%;
+  width: 75%;
   max-height: 100%;
   height: auto;
+  margin: 0 auto;
+}
+
+.explaination {
+  width: 75%;
   margin: 0 auto;
 }
 

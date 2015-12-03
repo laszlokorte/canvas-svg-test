@@ -61,7 +61,8 @@
     return [
       from.x+offsetExitX, from.y+offsetExitY,
       (adjustedDeltaX/2+deltaY*bending), (adjustedDeltaY/2-deltaX*bending),
-      adjustedDeltaX, adjustedDeltaY
+      adjustedDeltaX, adjustedDeltaY,
+      distance < 10
     ];
   };
 
@@ -169,6 +170,58 @@
     return Math.sqrt(dx*dx+dy*dy);
   }
 
+  var loadFSM = function() {
+    return [
+      {
+        pos: {x: 200, y: 200},
+        transitions: [
+          {target: 1},
+          {target: 0}
+        ]
+      },
+      {
+        pos: {x: 500, y: 480},
+        transitions: [
+          {target: 2},
+          {target: 0}
+        ]
+      },
+      {
+        pos: {x: 900, y: 280},
+        transitions: [
+          {target: 1}
+        ]
+      },
+      {
+        pos: {x: 600, y: 80},
+        transitions: [
+          {target: 0},
+          {target: 2}
+        ]
+      }
+      ,
+      {
+        pos: {x: 1000, y: 80},
+        transitions: [
+          {target: 0},
+          {target: 2}
+        ]
+      }
+    ];
+  };
+
+  var createDragMoveHandler = function(states, render) {
+    return function(element, deltaX, deltaY) {
+      var state = states[element];
+      state.pos.x = clamp(state.pos.x + deltaX, 0, 1200);
+      state.pos.y = clamp(state.pos.y + deltaY, 0, 600);
+
+      render();
+    };
+  };
+
+  window.createDragMoveHandler = createDragMoveHandler;
+  window.loadFSM = loadFSM;
   window.vecDistance = vecDistance;
   window.setupDrag = setupDrag;
   window.clamp = clamp;

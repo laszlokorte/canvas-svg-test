@@ -13,48 +13,63 @@
       Eine Final State Machine
     </canvas>
 
+    <div class="explaination">
+      <p>
+        The graph above is drawn on a canvas.
+      </p>
+      <h3>Advantages</h3>
+      <ul>
+        <li>more control over the exact rendering procedure (?)</li>
+      </ul>
+
+      <h3>Disadvantages</h3>
+      <ul>
+        <li>hittest for elements needs to be done manually</li>
+      </ul>
+    </div>
 
     <script type="text/javascript" src="common.js"></script>
     <script type="text/javascript">
-      function setup(stage) {
+      var setup = function(stage) {
+        var states = loadFSM();
 
-        var states = [
-          {
-            pos: {x: 200, y: 200},
-            transitions: [
-              {target: 1},
-              {target: 0}
-            ]
-          },
-          {
-            pos: {x: 500, y: 480},
-            transitions: [
-              {target: 2},
-              {target: 0}
-            ]
-          },
-          {
-            pos: {x: 900, y: 280},
-            transitions: [
-              {target: 1}
-            ]
-          },
-          {
-            pos: {x: 600, y: 80},
-            transitions: [
-              {target: 0},
-              {target: 2}
-            ]
-          }
-          ,
-          {
-            pos: {x: 1000, y: 80},
-            transitions: [
-              {target: 0},
-              {target: 2}
-            ]
-          }
-        ];
+        var renderState = function(ctx, state, active) {
+          ctx.beginPath();
+          ctx.arc(state.pos.x, state.pos.y, 70, 0, 2 * Math.PI, false);
+          ctx.fillStyle = 'lightgrey';
+          ctx.fill();
+          ctx.lineWidth = active ? 10 : 5;
+          ctx.strokeStyle = 'darkgrey';
+          ctx.stroke();
+        };
+
+        var renderTransition = function(ctx, source, target) {
+          var curve = curvedConnection(source.pos, target.pos, 80);
+
+          var arrowHead = curveArrowHead(curve, 50);
+
+          ctx.beginPath();
+          ctx.moveTo(curve[0], curve[1]);
+          ctx.quadraticCurveTo(
+            curve[0]+curve[2],
+            curve[1]+curve[3],
+            curve[0]+curve[4],
+            curve[1]+curve[5]
+          );
+
+          ctx.strokeStyle = 'green';
+          ctx.lineWidth = 8;
+
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(arrowHead[0], arrowHead[1]);
+          ctx.lineTo(arrowHead[2], arrowHead[3]);
+          ctx.lineTo(arrowHead[4], arrowHead[5]);
+
+          ctx.fillStyle = 'green';
+          ctx.fill();
+        };
 
         var render = function() {
           var ctx = stage.getContext('2d');
@@ -63,56 +78,20 @@
 
           ctx.clearRect(0, 0, width, height);
 
-          for(var i=0,j=states.length;i<j;i++) {
-            var state = states[i];
+          states.forEach(function(state, i) {
+            renderState(ctx, state,
+              dragState.activeState === i);
+          });
 
-            ctx.beginPath();
-            ctx.arc(state.pos.x, state.pos.y, 70, 0, 2 * Math.PI, false);
-            ctx.fillStyle = 'lightgrey';
-            ctx.fill();
-            ctx.lineWidth = dragState.activeState ===i ? 10 : 5;
-            ctx.strokeStyle = 'darkgrey';
-            ctx.stroke();
-          }
-
-          for(var i=0,j=states.length;i<j;i++) {
-            var state = states[i];
-            var transitions = state.transitions;
-
-            for(var p=0, q=transitions.length; p<q; p++) {
-              var transition = transitions[p];
+          states.forEach(function(state) {
+            state.transitions.forEach(function(transition) {
               var target = states[transition.target];
+              renderTransition(ctx, state, target);
+            })
+          });
+        };
 
-              var curve = curvedConnection(state.pos, target.pos, 80);
-
-              var arrowHead = curveArrowHead(curve, 50);
-
-              ctx.beginPath();
-              ctx.moveTo(curve[0], curve[1]);
-              ctx.quadraticCurveTo(
-                curve[0]+curve[2],
-                curve[1]+curve[3],
-                curve[0]+curve[4],
-                curve[1]+curve[5]
-              );
-
-              ctx.strokeStyle = 'green';
-              ctx.lineWidth = 8;
-
-              ctx.stroke();
-
-              ctx.beginPath();
-              ctx.moveTo(arrowHead[0], arrowHead[1]);
-              ctx.lineTo(arrowHead[2], arrowHead[3]);
-              ctx.lineTo(arrowHead[4], arrowHead[5]);
-
-              ctx.fillStyle = 'green';
-              ctx.fill();
-            }
-          }
-        }
-
-        function cursorPoint(evt){
+        var eventToCursorPosition = function(evt){
           var rect = stage.getBoundingClientRect();
           return {
             x: (evt.clientX - rect.left) / (rect.right - rect.left) * stage.width,
@@ -120,30 +99,18 @@
           };
         }
 
-        var dragStart = render;
+        var onDragStart = render;
+        var onDragEnd = render;
 
-        var dragMove = function(element, deltaX, deltaY) {
-          states[element].pos.x = clamp(states[element].pos.x + deltaX, 0, 1200);
-          states[element].pos.y = clamp(states[element].pos.y + deltaY, 0, 600);
+        var onDragMove = createDragMoveHandler(states, render);
 
-          render();
+        var hitTest = function(evt, pos) {
+          return states.reduce(function(prev, curr, idx) {
+            return vecDistance(pos, curr.pos) < 80 ? idx : prev;
+          }, null);
         };
 
-        var dragEnd = render;
-
-        var hit = function(evt, pos) {
-          for(var i=states.length-1;i>=0;i--) {
-            var state = states[i];
-
-            if(vecDistance(pos, state.pos) < 80) {
-              return i;
-            }
-          }
-
-          return null;
-        };
-
-        var dragState = setupDrag(stage, cursorPoint, hit, dragStart, dragMove, dragEnd);
+        var dragState = setupDrag(stage, eventToCursorPosition, hitTest,onDragStart, onDragMove, onDragEnd);
 
         return function() {
           setStageSize(stage, 1200, 600);
@@ -152,7 +119,6 @@
       }
 
       var renderer = setup(document.getElementById('stage'));
-
       renderer();
     </script>
 	</body>

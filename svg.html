@@ -8,52 +8,39 @@
 	<body>
     <h1>SVG</h1>
 
-    <svg id="stage" width="800" height="600"></svg>
+    <object>
+      <svg id="stage" width="800" height="600"></svg>
+    </object>
+
+    <div class="explaination">
+      <p>
+        The graph above is generated via SVG.
+      </p>
+      <h3>Advantages</h3>
+      <ul>
+        <li>Styleable via CSS</li>
+        <li>CSS :hover</li>
+        <li>DOM Event handling</li>
+        <li>can be generated in a functional style</li>
+      </ul>
+    </div>
 
     <script type="text/javascript" src="common.js"></script>
     <script type="text/javascript">
-      function setup(stage) {
+      var setup = function(stage) {
+        var states = loadFSM();
 
-        var states = [
-          {
-            pos: {x: 200, y: 200},
-            transitions: [
-              {target: 1},
-              {target: 0}
-            ]
-          },
-          {
-            pos: {x: 500, y: 480},
-            transitions: [
-              {target: 2},
-              {target: 0}
-            ]
-          },
-          {
-            pos: {x: 900, y: 280},
-            transitions: [
-              {target: 1}
-            ]
-          },
-          {
-            pos: {x: 600, y: 80},
-            transitions: [
-              {target: 0},
-              {target: 2}
-            ]
-          }
-          ,
-          {
-            pos: {x: 1000, y: 80},
-            transitions: [
-              {target: 0},
-              {target: 2}
-            ]
-          }
-        ];
+        var renderState = function(stage, index, state, active) {
+          var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, class: 'state' + (active ? ' active' : ''), 'stroke-width': '5'});
+          circle.setAttribute('stateIdx', index);
+        }
 
-        var step = function(val, size) {
-          return Math.round(val / size) * size;
+        var renderTransition = function(stage, source, target) {
+          var curve = curvedConnection(source.pos, target.pos, 80);
+
+          var arrow = appendToSVG(stage, 'g', {class:'transition'});
+          var line = appendToSVG(arrow,'path',{'d':quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
+          var head = appendToSVG(arrow,'polygon',{'points':curveArrowHead(curve, 50).join(',')});
         }
 
         var render = function() {
@@ -63,67 +50,51 @@
           clearSVG(stage);
           stage.setAttribute('viewBox', '0 0 '+ width + ' ' + height);
 
-          for(var i=0,j=states.length;i<j;i++) {
+          states.forEach(function(state, i) {
             var state = states[i];
-            var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, class: 'state' + (dragState.activeState===i ? ' active' : ''), 'stroke-width': '5'});
-            circle.setAttribute('stateIdx', i);
-          }
 
-          for(var i=0,j=states.length;i<j;i++) {
-            var state = states[i];
-            var transitions = state.transitions;
+            renderState(stage, i, state, dragState.activeState===i);
+          });
 
-            for(var p=0,q=transitions.length;p<q;p++) {
-              var transition = transitions[p];
+          states.forEach(function(state) {
+            state.transitions.forEach(function(transition) {
               var target = states[transition.target];
 
-              var curve = curvedConnection(state.pos, target.pos, 80);
-
-              var arrow = appendToSVG(stage, 'g', {class:'transition'});
-              var line = appendToSVG(arrow,'path',{'d':quadraticString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
-              var head = appendToSVG(arrow,'polygon',{'points':curveArrowHead(curve, 50).join(',')});
-            }
-          }
+              renderTransition(stage, state, target);
+            });
+          });
         }
 
-        var pt = stage.createSVGPoint();
 
-        function cursorPoint(evt){
-          pt.x = evt.clientX; pt.y = evt.clientY;
-          return pt.matrixTransform(stage.getScreenCTM().inverse());
-        }
+        var eventToCursorPosition = (function() {
+          var pt = stage.createSVGPoint();
 
-        var dragStart = function(idx) {
-          render();
-        };
-        var dragMove = function(element, deltaX, deltaY) {
-          states[element].pos.x = clamp(states[element].pos.x + deltaX, 0, 1200);
-          states[element].pos.y = clamp(states[element].pos.y + deltaY, 0, 600);
+          return function(evt){
+            pt.x = evt.clientX; pt.y = evt.clientY;
+            return pt.matrixTransform(stage.getScreenCTM().inverse());
+          };
+        })();
 
-          render();
-        };
-        var dragEnd = function() {
-          render();
-        };
+        var onDragStart = render;
+        var onDragEnd = render;
 
-        var hit = function(evt, pos) {
+        var onDragMove = createDragMoveHandler(states, render);
+
+        var hitTest = function(evt, pos) {
           var idx = evt.target.getAttribute('stateIdx');
 
           return (idx || null) && parseInt(idx, 10);
         };
 
-        var dragState = setupDrag(stage, cursorPoint, hit, dragStart, dragMove, dragEnd);
+        var dragState = setupDrag(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd);
 
         return function() {
           setStageSize(stage, 1200, 600);
           render();
         };
-      }
+      };
 
       var renderer = setup(document.getElementById('stage'));
-
-
-
       renderer();
     </script>
 	</body>
