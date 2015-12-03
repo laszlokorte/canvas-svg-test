@@ -129,7 +129,7 @@
         var onDragStart = render;
         var onDragEnd = render;
 
-        var onDragMove = createDragMoveHandler(states, render, createPanHandler(cam, render));
+        var onDragMove = createDragMoveHandler(states, render, createPanHandler(cam, render, 1200, 600));
 
         var hitTest = function(evt, pos) {
           return states.reduce(function(prev, curr, idx) {

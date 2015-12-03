@@ -209,7 +209,7 @@
   // start: a callback function which is called when the dragging starts
   // move: a callback function which is called when the mouse moves during dragging
   // end: a callback function which is called when dragging stops
-  var setupDrag = function(target, pos, hit, start, move, end) {
+  var setupDrag = function(target, pos, hit, start, move, end, zoom) {
     var dragState = {
       activeState : null,
     };
@@ -253,6 +253,16 @@
         document.addEventListener('mouseup', releaseListener);
         document.addEventListener('mousemove', moveListener);
       }
+    });
+
+    target.addEventListener('wheel', function(zoomEvt) {
+      zoomEvt.preventDefault();
+
+      var cursorNew = pos(zoomEvt);
+      var wheel = zoomEvt.wheelDeltaY / 360;
+      var factor = Math.pow(1 + Math.abs(wheel)/2 , wheel > 0 ? 1 : -1);
+
+      zoom && zoom(factor, cursorNew);
     });
 
     return dragState;
@@ -335,16 +345,16 @@
   // create a callback function to be used in createDragMoveHandler for panning
   // cam: object which x and y properties should be set
   // render: render function to be called when data changes
-  var createPanHandler = function(cam, render) {
+  var createPanHandler = function(cam, render, width, height) {
     return function(dx, dy) {
-      cam.x -= dx;
-      cam.y -= dy;
+      cam.x = clamp(cam.x - dx, -width/2, width/2);
+      cam.y = clamp(cam.y - dy, -height/2, height/2);
       render();
     };
   };
 
   var createCamera = function() {
-    return {x:0,y:0};
+    return {x:0,y:0,zoom:1};
   };
 
   var calculateTransitionPivotAngle = function(states, stateIdx) {

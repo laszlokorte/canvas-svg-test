@@ -59,12 +59,15 @@
         }
 
         var render = function() {
-          var width = stage.getAttribute('width');
-          var height = stage.getAttribute('height');
+          var width = parseInt(stage.getAttribute('width'), 10);
+          var height = parseInt(stage.getAttribute('height'), 10);
 
           clearSVG(stage);
           stage.setAttribute('viewBox', [
-            cam.x, cam.y, width, height
+            cam.x - width*cam.zoom/2+width/2,
+            cam.y - height*cam.zoom/2+height/2,
+            width*cam.zoom,
+            height*cam.zoom
           ].join(' '));
 
           appendToSVG(stage,'rect',{x:0,y:0,width:width,height: height,fill:'white'});
@@ -100,14 +103,19 @@
         var onDragStart = render;
         var onDragEnd = render;
 
-        var onDragMove = createDragMoveHandler(states, render, createPanHandler(cam, render));
+        var onDragMove = createDragMoveHandler(states, render, createPanHandler(cam, render, 1200, 600));
 
         var hitTest = function(evt, pos) {
           var idx = evt.target.getAttribute('stateIdx');
           return idx ? parseInt(idx, 10) : -1;
         };
 
-        var dragState = setupDrag(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd);
+        var onZoom = function(factor, pos) {
+          cam.zoom = clamp(cam.zoom*factor, 0.3, 3);
+          render();
+        };
+
+        var dragState = setupDrag(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom);
 
         return function() {
           setStageSize(stage, 1200, 600);
