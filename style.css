@@ -52,6 +52,6 @@ svg > .state-name {
   font-size: 30pt;
   fill: black;
   text-anchor: middle;
-  alignment-baseline:central;
+  dominant-baseline: central;
   pointer-events: none;
 }
