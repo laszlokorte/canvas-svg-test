@@ -64,10 +64,10 @@
 
           clearSVG(stage);
           stage.setAttribute('viewBox', [
-            cam.x - width*cam.zoom/2+width/2,
-            cam.y - height*cam.zoom/2+height/2,
-            width*cam.zoom,
-            height*cam.zoom
+            cam.x - width/cam.zoom/2+width/2,
+            cam.y - height/cam.zoom/2+height/2,
+            width/cam.zoom,
+            height/cam.zoom
           ].join(' '));
 
           appendToSVG(stage,'rect',{x:0,y:0,width:width,height: height,fill:'white'});
@@ -110,10 +110,7 @@
           return idx ? parseInt(idx, 10) : -1;
         };
 
-        var onZoom = function(factor, pos) {
-          cam.zoom = clamp(cam.zoom*factor, 0.3, 3);
-          render();
-        };
+        var onZoom = createZoomHandler(cam, render, 0.3, 3);
 
         var dragState = setupDrag(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom);
 

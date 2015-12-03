@@ -95,14 +95,25 @@
 
         var render = function() {
           var ctx = stage.getContext('2d');
-          var width = stage.getAttribute('width');
-          var height = stage.getAttribute('height');
+          var width = parseInt(stage.getAttribute('width'), 10);
+          var height = parseInt(stage.getAttribute('height'), 10);
 
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.clearRect(0, 0, width, height);
 
-          ctx.translate(-cam.x, -cam.y);
-
+          ctx.translate(
+            width/2,
+            height/2
+          );
+          ctx.scale(cam.zoom, cam.zoom);
+          ctx.translate(
+            -width/2,
+            -height/2
+          );
+          ctx.translate(
+            -cam.x,
+            -cam.y
+          );
           states.forEach(function(state, i) {
             renderState(ctx, state,
               dragState.activeState === i);
@@ -120,9 +131,14 @@
 
         var eventToCursorPosition = function(evt){
           var rect = stage.getBoundingClientRect();
+          var leftPercent = (evt.clientX - rect.left) / (rect.right - rect.left);
+          var topPercent = (evt.clientY - rect.top) / (rect.bottom - rect.top);
+
           return {
-            x: (evt.clientX - rect.left) / (rect.right - rect.left) * stage.width + cam.x,
-            y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * stage.height + cam.y
+            x: cam.x + (leftPercent * stage.width) / cam.zoom
+              + stage.width/2 - stage.width/2 / cam.zoom,
+            y: cam.y + (topPercent * stage.height) / cam.zoom
+            + stage.height/2 - stage.height/2 / cam.zoom
           };
         }
 
@@ -137,7 +153,9 @@
           }, -1);
         };
 
-        var dragState = setupDrag(stage, eventToCursorPosition, hitTest,onDragStart, onDragMove, onDragEnd);
+        var onZoom = createZoomHandler(cam, render, 0.3, 3);
+
+        var dragState = setupDrag(stage, eventToCursorPosition, hitTest,onDragStart, onDragMove, onDragEnd, onZoom);
 
         return function() {
           setStageSize(stage, 1200, 600);

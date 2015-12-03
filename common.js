@@ -385,6 +385,14 @@
     return (avoidAngleOutgoing + avoidAngleIncoming) / 2;
   };
 
+  var createZoomHandler = function(cam, render, min, max) {
+    return function(factor, pos) {
+      cam.zoom = clamp(cam.zoom*factor, min, max);
+      render();
+    };
+  };
+
+  window.createZoomHandler = createZoomHandler;
   window.calculateTransitionPivotAngle = calculateTransitionPivotAngle;
   window.createCamera = createCamera;
   window.curveLabelPosition = curveLabelPosition;
