@@ -281,7 +281,7 @@
     return [
       {
         name: "A",
-        pos: {x: 200, y: 200},
+        pos: {x: -400, y: -100},
         transitions: [
           {target: 1, condition: 0},
           {target: 0, condition: 1}
@@ -289,7 +289,7 @@
       },
       {
         name: "B",
-        pos: {x: 500, y: 480},
+        pos: {x: -100, y: 180},
         transitions: [
           {target: 2, condition: 1},
           {target: 0, condition: 0},
@@ -298,14 +298,14 @@
       },
       {
         name: "C",
-        pos: {x: 900, y: 280},
+        pos: {x: 300, y: -20},
         transitions: [
           {target: 1, condition: 1}
         ]
       },
       {
         name: "D",
-        pos: {x: 600, y: 80},
+        pos: {x: 0, y: -220},
         transitions: [
           {target: 0, condition: 0},
           {target: 2, condition: 1}
@@ -314,8 +314,9 @@
       ,
       {
         name: "E",
-        pos: {x: 1000, y: 80},
+        pos: {x: 400, y: -220},
         transitions: [
+          {target: 4, condition: 1},
           {target: 0, condition: 1},
           {target: 2, condition: 0}
         ]
@@ -335,8 +336,8 @@
       }
 
       var state = states[element];
-      state.pos.x = clamp(state.pos.x + deltaX, 0, 1200);
-      state.pos.y = clamp(state.pos.y + deltaY, 0, 600);
+      state.pos.x = clamp(state.pos.x + deltaX, -600, 600);
+      state.pos.y = clamp(state.pos.y + deltaY, -300, 300);
 
       render();
     };
@@ -367,28 +368,46 @@
       return prev + Math.atan2(target.pos.y - state.pos.y, target.pos.x - state.pos.x);
     }, 0) / (outgoingTrans.length||1);
 
-    var incomingTrans = states.filter(function(otherState) {
-      return otherState.transitions.some(function(backTrans) {
+    var incomingTrans = states.filter(function(otherState, idx) {
+      return idx !== stateIdx &&
+        otherState.transitions.some(function(backTrans) {
         return backTrans.target === stateIdx;
       });
     });
 
-    var avoidAngleOutgoing = outgoingTrans.reduce(function(prev, outgoing) {
+    var avoidAngleOutgoing = outgoingTrans.map(function(outgoing) {
       var target = states[outgoing.target];
-      return prev + Math.atan2(target.pos.y - state.pos.y, target.pos.x - state.pos.x);
-    }, 0) / (outgoingTrans.length||1);
+      return Math.atan2(target.pos.y - state.pos.y, target.pos.x - state.pos.x);
+    }).reduce(function(prev, angle) {
+      return {cos: prev.cos + Math.cos(angle), sin: prev.sin + Math.sin(angle)};
+    }, {cos: 0, sin: 0});
 
-    var avoidAngleIncoming = incomingTrans.reduce(function(prev, source) {
-      return prev + Math.atan2(source.pos.y - state.pos.y, source.pos.x - state.pos.x);
-    }, 0) / (incomingTrans.length||1);
+    var avoidAngleIncoming = incomingTrans.map(function(source) {
+      return Math.atan2(source.pos.y - state.pos.y, source.pos.x - state.pos.x);
+    }).reduce(function(prev, angle) {
+      return {cos: prev.cos + Math.cos(angle), sin: prev.sin + Math.sin(angle)};
+    }, {cos: 0, sin: 0});
 
-    return (avoidAngleOutgoing + avoidAngleIncoming) / 2;
+    var angleSum = Math.atan2(
+      avoidAngleOutgoing.sin + avoidAngleIncoming.sin,
+      avoidAngleOutgoing.cos + avoidAngleIncoming.cos);
+
+    return angleSum;
   };
 
-  var createZoomHandler = function(cam, render, min, max) {
+  var createZoomHandler = function(cam, render, min, max, panHandler) {
     return function(factor, pos) {
-      cam.zoom = clamp(cam.zoom*factor, min, max);
-      render();
+      var oldZoom = cam.zoom;
+      var newZoom = clamp(cam.zoom*factor, min, max);
+
+      var moveFactor = 1 - (oldZoom / newZoom);
+
+      cam.zoom = newZoom;
+      if (panHandler) {
+        panHandler(-(pos.x - cam.x) * moveFactor, -(pos.y - cam.y) * moveFactor);
+      } else {
+        render();
+      }
     };
   };
 

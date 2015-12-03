@@ -106,10 +106,7 @@
             height/2
           );
           ctx.scale(cam.zoom, cam.zoom);
-          ctx.translate(
-            -width/2,
-            -height/2
-          );
+
           ctx.translate(
             -cam.x,
             -cam.y
@@ -125,7 +122,7 @@
             state.transitions.forEach(function(transition) {
               var target = states[transition.target];
               renderTransition(ctx, state, target, ''+transition.condition, connectionPivotAngle + Math.PI);
-            })
+            });
           });
         };
 
@@ -136,16 +133,17 @@
 
           return {
             x: cam.x + (leftPercent * stage.width) / cam.zoom
-              + stage.width/2 - stage.width/2 / cam.zoom,
+               - stage.width/2 / cam.zoom,
             y: cam.y + (topPercent * stage.height) / cam.zoom
-            + stage.height/2 - stage.height/2 / cam.zoom
+            - stage.height/2 / cam.zoom
           };
         }
 
         var onDragStart = render;
         var onDragEnd = render;
 
-        var onDragMove = createDragMoveHandler(states, render, createPanHandler(cam, render, 1200, 600));
+        var panHandler = createPanHandler(cam, render, 1200, 600);
+        var onDragMove = createDragMoveHandler(states, render, panHandler);
 
         var hitTest = function(evt, pos) {
           return states.reduce(function(prev, curr, idx) {
@@ -153,7 +151,7 @@
           }, -1);
         };
 
-        var onZoom = createZoomHandler(cam, render, 0.3, 3);
+        var onZoom = createZoomHandler(cam, render, 0.3, 3, panHandler);
 
         var dragState = setupDrag(stage, eventToCursorPosition, hitTest,onDragStart, onDragMove, onDragEnd, onZoom);
 
