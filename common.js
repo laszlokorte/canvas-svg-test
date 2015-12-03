@@ -43,9 +43,9 @@
     var deltaY = to.y - from.y;
     var distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
 
-    var rad = Math.atan2(deltaX, deltaY);
-    var radExit = rad + 0.25;
-    var radEnter = rad - 0.25;
+    var rad = Math.atan2(deltaY, deltaX);
+    var radExit = rad - 0.25;
+    var radEnter = rad + 0.25;
 
     var offsetMultiplierEnter = 1;
     var offsetMultiplierExit = 1;
@@ -59,10 +59,10 @@
       offsetMultiplierExit = 0.7;
     }
 
-    var offsetExitX = Math.sin(radExit) * offset * offsetMultiplierExit;
-    var offsetExitY = Math.cos(radExit) * offset * offsetMultiplierExit;
-    var offsetEnterX = Math.sin(radEnter) * (offset + 20) * offsetMultiplierEnter;
-    var offsetEnterY = Math.cos(radEnter) * (offset + 20) * offsetMultiplierEnter;
+    var offsetExitX = Math.cos(radExit) * offset * offsetMultiplierExit;
+    var offsetExitY = Math.sin(radExit) * offset * offsetMultiplierExit;
+    var offsetEnterX = Math.cos(radEnter) * (offset + 20) * offsetMultiplierEnter;
+    var offsetEnterY = Math.sin(radEnter) * (offset + 20) * offsetMultiplierEnter;
 
     var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
     var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
@@ -146,21 +146,21 @@
     var cx = interpCubic(0.9, 0, curve[2], curve[4], curve[6]);
     var cy = interpCubic(0.9, 0, curve[3], curve[5], curve[7]);
 
-    var angle = Math.atan2(curve[6] - cx, curve[7] - cy);
+    var angle = Math.atan2(curve[7] - cy, curve[6] - cx);
     var extend = Math.PI/4;
 
     var angleA = angle + extend / 2;
     var angleB = angle - extend / 2;
-    var tipX = curve[0] + curve[6] + Math.sin(angle) * length/2;
-    var tipY = curve[1] + curve[7] + Math.cos(angle) * length/2;
+    var tipX = curve[0] + curve[6] + Math.cos(angle) * length/2;
+    var tipY = curve[1] + curve[7] + Math.sin(angle) * length/2;
 
     return [
       tipX,
       tipY,
-      tipX - Math.sin(angleA) * length,
-      tipY - Math.cos(angleA) * length,
-      tipX - Math.sin(angleB) * length,
-      tipY - Math.cos(angleB) * length,
+      tipX - Math.cos(angleA) * length,
+      tipY - Math.sin(angleA) * length,
+      tipX - Math.cos(angleB) * length,
+      tipY - Math.sin(angleB) * length,
     ];
   };
 
