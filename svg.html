@@ -70,7 +70,13 @@
             height/cam.zoom
           ].join(' '));
 
-          appendToSVG(stage,'rect',{x:0,y:0,width:width,height: height,fill:'white'});
+          appendToSVG(stage,'rect',{
+            x: cam.x - width/cam.zoom/2,
+            y: cam.y - height/cam.zoom/2,
+            width: width/cam.zoom,
+            height: height/cam.zoom,
+            class: 'background'
+          });
 
           states.forEach(function(state, i) {
             var state = states[i];

@@ -22,6 +22,10 @@ canvas, svg {
   margin: 0 auto;
 }
 
+svg > .background {
+  fill: white;
+}
+
 svg > .state {
   fill: lightgrey;
   stroke: darkgrey;
