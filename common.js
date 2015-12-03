@@ -35,7 +35,10 @@
   // from and to are {x:,y:}, offset is a radius around
   // the points that should not be crossed by the line
   // returns [startx, starty, ctrlX, ctrlY, endX, endY]
-  var curvedConnection = function(from, to, offset) {
+  var curvedConnection = function(from, to, offset, preferredAngle) {
+    if (typeof preferredAngle === 'undefined') {
+      preferredAngle = Math.PI;
+    }
     var deltaX = to.x - from.x;
     var deltaY = to.y - from.y;
     var distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
@@ -64,13 +67,13 @@
     var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
     var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
 
-    var bending = Math.sqrt(distance)/(400);
+    var bending = Math.sqrt(distance) / 400;
 
-    var ctrlPointX = (adjustedDeltaX/2+adjustedDeltaY*bending);
-    var ctrlPointY = (adjustedDeltaY/2-adjustedDeltaX*bending);
+    var ctrlPointX = (adjustedDeltaX / 2 + adjustedDeltaY * bending);
+    var ctrlPointY = (adjustedDeltaY / 2 - adjustedDeltaX * bending);
 
-    var startX = from.x+offsetExitX;
-    var startY = from.y+offsetExitY;
+    var startX = from.x + offsetExitX;
+    var startY = from.y + offsetExitY;
     var ctrlAX = ctrlPointX;
     var ctrlAY = ctrlPointY;
     var ctrlBX = ctrlPointX;
@@ -79,28 +82,32 @@
     var endY = adjustedDeltaY;
 
     if(reflexive) {
+      var fromX = from.x;
+      var fromY = from.y;
       var samePoint = Math.abs(distance) < 1;
-      var rotatedDeltaX = !samePoint ? -deltaY / distance : -1;
-      var rotatedDeltaY = !samePoint ?  deltaX / distance : 0;
+      if (samePoint) {
+        distance = offset;
+        deltaX = distance*Math.sin(preferredAngle);
+        deltaY = -distance*Math.cos(preferredAngle);
+        fromX -= deltaX/2;
+        fromY -= deltaY/2;
+      }
+      var rotatedDeltaX = -deltaY / distance;
+      var rotatedDeltaY =  deltaX / distance;
       var refOffsetX = rotatedDeltaX * offset;
       var refOffsetY = rotatedDeltaY * offset;
 
-      var extraX = deltaX*offset/(distance||1)/2;
-      var extraY = deltaY*offset/(distance||1)/2;
+      var extraX = deltaX * offset / (distance || 1) / 2;
+      var extraY = deltaY * offset / (distance || 1) / 2;
 
-      if (samePoint) {
-        deltaY += offset;
-        extraY += offset;
-      }
-
-      startX = from.x + refOffsetX;
-      startY = from.y + refOffsetY - (samePoint ? offset/2 : 0);
+      startX = fromX + refOffsetX;
+      startY = fromY + refOffsetY;
       ctrlAX = refOffsetX - extraX;
       ctrlAY = refOffsetY - extraY;
       ctrlBX = deltaX + refOffsetX + extraX;
       ctrlBY = deltaY + refOffsetY + extraY;
-      endX = deltaX + rotatedDeltaX*(!samePoint ? 20 : 10) ;
-      endY = deltaY + rotatedDeltaY*20;
+      endX = deltaX + rotatedDeltaX * 10;
+      endY = deltaY + rotatedDeltaY * 20;
     }
 
     return [
@@ -263,6 +270,7 @@
   var loadFSM = function() {
     return [
       {
+        name: "A",
         pos: {x: 200, y: 200},
         transitions: [
           {target: 1, condition: 0},
@@ -270,19 +278,23 @@
         ]
       },
       {
+        name: "B",
         pos: {x: 500, y: 480},
         transitions: [
           {target: 2, condition: 1},
-          {target: 0, condition: 0}
+          {target: 0, condition: 0},
+          {target: 1, condition: '?'}
         ]
       },
       {
+        name: "C",
         pos: {x: 900, y: 280},
         transitions: [
           {target: 1, condition: 1}
         ]
       },
       {
+        name: "D",
         pos: {x: 600, y: 80},
         transitions: [
           {target: 0, condition: 0},
@@ -291,6 +303,7 @@
       }
       ,
       {
+        name: "E",
         pos: {x: 1000, y: 80},
         transitions: [
           {target: 0, condition: 1},
@@ -334,6 +347,35 @@
     return {x:0,y:0};
   };
 
+  var calculateTransitionPivotAngle = function(states, stateIdx) {
+    var state = states[stateIdx];
+    var outgoingTrans = state.transitions.filter(function(transition) {
+      return transition.target !== stateIdx;
+    })
+    var avoidAngleOutgoing = outgoingTrans.reduce(function(prev, outgoing) {
+      var target = states[outgoing.target];
+      return prev + Math.atan2(target.pos.y - state.pos.y, target.pos.x - state.pos.x);
+    }, 0) / (outgoingTrans.length||1);
+
+    var incomingTrans = states.filter(function(otherState) {
+      return otherState.transitions.some(function(backTrans) {
+        return backTrans.target === stateIdx;
+      });
+    });
+
+    var avoidAngleOutgoing = outgoingTrans.reduce(function(prev, outgoing) {
+      var target = states[outgoing.target];
+      return prev + Math.atan2(target.pos.y - state.pos.y, target.pos.x - state.pos.x);
+    }, 0) / (outgoingTrans.length||1);
+
+    var avoidAngleIncoming = incomingTrans.reduce(function(prev, source) {
+      return prev + Math.atan2(source.pos.y - state.pos.y, source.pos.x - state.pos.x);
+    }, 0) / (incomingTrans.length||1);
+
+    return (avoidAngleOutgoing + avoidAngleIncoming) / 2;
+  };
+
+  window.calculateTransitionPivotAngle = calculateTransitionPivotAngle;
   window.createCamera = createCamera;
   window.curveLabelPosition = curveLabelPosition;
   window.createPanHandler = createPanHandler;

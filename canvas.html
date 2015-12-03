@@ -48,10 +48,16 @@
           ctx.lineWidth = active ? 10 : 5;
           ctx.strokeStyle = 'darkgrey';
           ctx.stroke();
+
+          ctx.fillStyle = 'black';
+          ctx.font = "30pt Arial";
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(state.name,state.pos.x,state.pos.y);
         };
 
-        var renderTransition = function(ctx, source, target, label) {
-          var curve = curvedConnection(source.pos, target.pos, 80);
+        var renderTransition = function(ctx, source, target, label, preferredAngle) {
+          var curve = curvedConnection(source.pos, target.pos, 80, preferredAngle);
 
           var arrowHead = curveArrowHead(curve, 50);
 
@@ -79,9 +85,10 @@
           ctx.fillStyle = 'green';
           ctx.fill();
 
+          var aligns = ['left','center','right'];
           var textPosition = curveLabelPosition(curve, 30);
           ctx.font = "25pt Arial";
-          ctx.textAlign = textPosition.align;
+          ctx.textAlign = aligns[1+textPosition.align];
           ctx.textBaseline = 'middle';
           ctx.fillText(label,textPosition.x,textPosition.y);
         };
@@ -101,10 +108,12 @@
               dragState.activeState === i);
           });
 
-          states.forEach(function(state) {
+          states.forEach(function(state, stateIdx) {
+            var connectionPivotAngle = calculateTransitionPivotAngle(states, stateIdx);
+
             state.transitions.forEach(function(transition) {
               var target = states[transition.target];
-              renderTransition(ctx, state, target, ''+transition.condition);
+              renderTransition(ctx, state, target, ''+transition.condition, connectionPivotAngle + Math.PI);
             })
           });
         };

@@ -42,10 +42,12 @@
         var renderState = function(stage, index, state, active) {
           var circle = appendToSVG(stage,'circle',{cx:state.pos.x, cy:state.pos.y, r:70, class: 'state' + (active ? ' active' : ''), 'stroke-width': '5'});
           circle.setAttribute('stateIdx', index);
+
+          var label = appendToSVG(stage,'text',{x:state.pos.x, y:state.pos.y,class:'state-name'}, state.name);
         }
 
-        var renderTransition = function(stage, source, target, label) {
-          var curve = curvedConnection(source.pos, target.pos, 80);
+        var renderTransition = function(stage, source, target, label, preferredAngle) {
+          var curve = curvedConnection(source.pos, target.pos, 80, preferredAngle);
 
           var arrow = appendToSVG(stage, 'g', {class:'transition'});
           var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
@@ -74,11 +76,13 @@
               dragState.activeState === i);
           });
 
-          states.forEach(function(state) {
+          states.forEach(function(state, stateIdx) {
+            var connectionPivotAngle = calculateTransitionPivotAngle(states, stateIdx);
+
             state.transitions.forEach(function(transition) {
               var target = states[transition.target];
 
-              renderTransition(stage, state, target, ''+transition.condition);
+              renderTransition(stage, state, target, ''+transition.condition, connectionPivotAngle + Math.PI);
             });
           });
         }

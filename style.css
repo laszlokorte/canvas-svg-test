@@ -29,7 +29,7 @@ svg > .state {
 }
 
 svg > .state.active {
-  stroke-width: 10pt;
+  stroke-width: 10px;
 }
 
 svg > .transition {
@@ -46,5 +46,12 @@ svg > .transition:hover {
 svg > .transition > .label {
   font-size: 25pt;
   text-anchor: middle;
-  alignment-baseline:middle;
+  alignment-baseline: central;
+}
+svg > .state-name {
+  font-size: 30pt;
+  fill: black;
+  text-anchor: middle;
+  alignment-baseline:central;
+  pointer-events: none;
 }
