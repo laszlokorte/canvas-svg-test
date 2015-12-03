@@ -18,10 +18,13 @@
         The graph above is drawn on a canvas.
       </p>
       <p>
-        You can move the state bubbles by dragging them with your mouse.
+        You can move the state bubbles by <strong>dragging</strong> them with your mouse.
       </p>
       <p>
-        Move the camera by dragging the background.
+        <strong>Move</strong> the camera by dragging the background. <strong>Scroll</strong> to zoom. <strong>DoubleClick</strong> to autolayout nodes.
+      </p>
+      <p>
+
       </p>
       <h3>Advantages</h3>
       <ul>
@@ -40,16 +43,23 @@
         var states = loadFSM();
         var cam = createCamera();
 
+        var colors = {
+          border: 'darkgrey',
+          fill: 'lightgrey',
+          font: 'black',
+          line: 'FireBrick',
+        };
+
         var renderState = function(ctx, state, active) {
           ctx.beginPath();
           ctx.arc(state.pos.x, state.pos.y, 70, 0, 2 * Math.PI, false);
-          ctx.fillStyle = 'lightgrey';
+          ctx.fillStyle = colors.fill;
           ctx.fill();
           ctx.lineWidth = active ? 10 : 5;
-          ctx.strokeStyle = 'darkgrey';
+          ctx.strokeStyle = colors.border;
           ctx.stroke();
 
-          ctx.fillStyle = 'black';
+          ctx.fillStyle = colors.font;
           ctx.font = "30pt Arial";
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -72,7 +82,7 @@
             curve[1]+curve[7]
           );
 
-          ctx.strokeStyle = 'green';
+          ctx.strokeStyle = colors.line;
           ctx.lineWidth = 8;
 
           ctx.stroke();
@@ -82,11 +92,12 @@
           ctx.lineTo(arrowHead[2], arrowHead[3]);
           ctx.lineTo(arrowHead[4], arrowHead[5]);
 
-          ctx.fillStyle = 'green';
+          ctx.fillStyle = colors.line;
           ctx.fill();
 
           var aligns = ['left','center','right'];
           var textPosition = curveLabelPosition(curve, 30);
+          ctx.fillStyle = colors.font;
           ctx.font = "25pt Arial";
           ctx.textAlign = aligns[1+textPosition.align];
           ctx.textBaseline = 'middle';

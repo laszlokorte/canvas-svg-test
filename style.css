@@ -4,13 +4,17 @@ body {
   padding: 0;
 }
 
+.github-fork-ribbon-wrapper .github-fork-ribbon {
+    background-color: black;
+}
+
 body > h1:first-child {
   text-align: center;
 }
 
 canvas, svg {
   display: block;
-  border: 2px solid pink;
+  border: 1px solid FireBrick ;
   width: 75%;
   max-height: 100%;
   height: auto;
@@ -38,18 +42,19 @@ svg > .state.active {
 }
 
 svg > .transition {
-  fill: green;
-  stroke: green;
+  fill: FireBrick ;
+  stroke: FireBrick ;
   transition: fill 0.1s, stroke 0.1s;
 }
 
 svg > .transition:hover {
-  fill: blue;
-  stroke: blue;
+  fill: FireBrick ;
+  stroke: FireBrick ;
 }
 
 svg > .transition > .label {
   font-size: 25pt;
+  fill: black;
   text-anchor: middle;
   alignment-baseline: central;
 }
