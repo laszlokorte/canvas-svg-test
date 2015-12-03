@@ -81,7 +81,8 @@ svg {
   stroke-width: 0;
   text-anchor: middle;
   alignment-baseline: central;
-  pointer: default;
+  cursor: default;
+  pointer-events: none;
 }
 
 .state-label {
@@ -90,4 +91,5 @@ svg {
   text-anchor: middle;
   dominant-baseline: central;
   pointer-events: none;
+  cursor: default;
 }
