@@ -22,8 +22,9 @@ canvas, svg {
   margin: 0 auto;
 }
 
-svg > .background {
-  fill: white;
+svg {
+  pointer-events: fill;
+  fill: none;
 }
 
 svg > .state {

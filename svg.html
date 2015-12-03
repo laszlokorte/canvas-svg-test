@@ -70,14 +70,6 @@
             height/cam.zoom
           ].join(' '));
 
-          appendToSVG(stage,'rect',{
-            x: cam.x - width/cam.zoom/2,
-            y: cam.y - height/cam.zoom/2,
-            width: width/cam.zoom,
-            height: height/cam.zoom,
-            class: 'background'
-          });
-
           states.forEach(function(state, i) {
             var state = states[i];
 
@@ -130,7 +122,7 @@
           render();
         };
 
-        var dragState = stupMouseHandler(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom, onDoubleClick);
+        var dragState = setupMouseHandler(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom, onDoubleClick);
 
         return function() {
           setStageSize(stage, 1200, 600);

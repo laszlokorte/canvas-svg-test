@@ -209,18 +209,21 @@
   // start: a callback function which is called when the dragging starts
   // move: a callback function which is called when the mouse moves during dragging
   // end: a callback function which is called when dragging stops
-  var stupMouseHandler = function(target, pos, hit, start, move, end, zoom, doubleClick) {
+  var setupMouseHandler = function(target, pos, hit, start, move, end, zoom, doubleClick) {
     var dragState = {
-      activeState : null,
+      activeState : null
     };
 
     var mouseOffset = {x:0,y:0};
     var moveListener = function(evtMove) {
       evtMove.preventDefault();
       var cursor = pos(evtMove);
+      var activeState = dragState.activeState;
+      var deltaX = cursor.x - mouseOffset.x;
+      var deltaY = cursor.y - mouseOffset.y
 
       throttle(function() {
-        move(dragState.activeState, cursor.x - mouseOffset.x, cursor.y - mouseOffset.y);
+        move(activeState, deltaX, deltaY);
         var cursorNew = pos(evtMove);
         mouseOffset.x = cursorNew.x;
         mouseOffset.y = cursorNew.y;
@@ -232,13 +235,14 @@
       evtUp.preventDefault();
 
       dragState.activeState = null;
+
       mouseOffset.x = 0;
       mouseOffset.y = 0;
 
       document.removeEventListener('mousemove', moveListener);
       document.removeEventListener('mouseup', releaseListener);
 
-      end();
+      end && end();
     };
 
     target.addEventListener('mousedown', function(evtDown) {
@@ -251,10 +255,10 @@
         mouseOffset.x = cursor.x;
         mouseOffset.y = cursor.y;
 
-        start(stateIdx);
-
         document.addEventListener('mouseup', releaseListener);
         document.addEventListener('mousemove', moveListener);
+
+        start && start(stateIdx);
       }
     });
 
@@ -270,7 +274,6 @@
 
     target.addEventListener('dblclick', function(dblClickEvt) {
       dblClickEvt.preventDefault();
-
       doubleClick && doubleClick();
     });
 
@@ -460,7 +463,7 @@
   window.createDragMoveHandler = createDragMoveHandler;
   window.loadFSM = loadFSM;
   window.vecDistance = vecDistance;
-  window.stupMouseHandler = stupMouseHandler;
+  window.setupMouseHandler = setupMouseHandler;
   window.clamp = clamp;
   window.curvedConnection = curvedConnection;
   window.cubicString = cubicString;
