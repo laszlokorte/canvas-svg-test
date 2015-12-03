@@ -219,10 +219,13 @@
       evtMove.preventDefault();
       var cursor = pos(evtMove);
 
-      move(dragState.activeState, cursor.x - mouseOffset.x, cursor.y - mouseOffset.y);
-      var cursorNew = pos(evtMove);
-      mouseOffset.x = cursorNew.x;
-      mouseOffset.y = cursorNew.y;
+      throttle(function() {
+        move(dragState.activeState, cursor.x - mouseOffset.x, cursor.y - mouseOffset.y);
+        var cursorNew = pos(evtMove);
+        mouseOffset.x = cursorNew.x;
+        mouseOffset.y = cursorNew.y;
+      });
+
     };
 
     var releaseListener = function(evtUp) {
@@ -259,10 +262,10 @@
       zoomEvt.preventDefault();
 
       var cursorNew = pos(zoomEvt);
-      var wheel = zoomEvt.wheelDeltaY / 360;
+      var wheel = zoomEvt.deltaY / -90;
       var factor = Math.pow(1 + Math.abs(wheel)/2 , wheel > 0 ? 1 : -1);
 
-      zoom && zoom(factor, cursorNew);
+      throttle(zoom.bind(null, factor, cursorNew));
     });
 
     target.addEventListener('dblclick', function(dblClickEvt) {
@@ -426,6 +429,28 @@
     }
   };
 
+  var requestFrame = window.requestAnimationFrame.bind(window);
+
+  var throttle = (function() {
+    var id = null;
+    var frame = function(func) {
+      id = null;
+      func();
+    }
+    return function(func) {
+      if(id !== null) {
+        return;
+      }
+      id = requestFrame(frame.bind(null, func));
+    };
+  })();
+
+  var makeRenderer = function(renderFunction, sync) {
+    return sync ? renderFunction :
+      throttle.bind(null, renderFunction);
+  };
+
+  window.makeRenderer = makeRenderer;
   window.arangeStates = arangeStates;
   window.createZoomHandler = createZoomHandler;
   window.calculateTransitionPivotAngle = calculateTransitionPivotAngle;

@@ -58,7 +58,7 @@
           var text = appendToSVG(arrow,'text',{x:textPosition.x, y:textPosition.y,'class':'label',style:'text-anchor:'+aligns[1+textPosition.align]}, label);
         }
 
-        var render = function() {
+        var doRender = function() {
           var width = parseInt(stage.getAttribute('width'), 10);
           var height = parseInt(stage.getAttribute('height'), 10);
 
@@ -94,7 +94,9 @@
               renderTransition(stage, state, target, ''+transition.condition, connectionPivotAngle + Math.PI);
             });
           });
-        }
+        };
+
+        var render = makeRenderer(doRender, true);
 
         var eventToCursorPosition = (function() {
           var pt = stage.createSVGPoint();

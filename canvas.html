@@ -93,7 +93,7 @@
           ctx.fillText(label,textPosition.x,textPosition.y);
         };
 
-        var render = function() {
+        var doRender = function() {
           var ctx = stage.getContext('2d');
           var width = parseInt(stage.getAttribute('width'), 10);
           var height = parseInt(stage.getAttribute('height'), 10);
@@ -125,6 +125,8 @@
             });
           });
         };
+
+        var render = makeRenderer(doRender);
 
         var eventToCursorPosition = function(evt){
           var rect = stage.getBoundingClientRect();
