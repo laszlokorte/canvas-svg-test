@@ -20,6 +20,9 @@
       <p>
         You can move the state bubbles by dragging them with your mouse.
       </p>
+      <p>
+        Move the camera by dragging the background.
+      </p>
       <h3>Advantages</h3>
       <ul>
         <li>more control over the exact rendering procedure (?)</li>
@@ -35,6 +38,7 @@
     <script type="text/javascript">
       var setup = function(stage) {
         var states = loadFSM();
+        var cam = {x:0,y:0};
 
         var renderState = function(ctx, state, active) {
           ctx.beginPath();
@@ -79,7 +83,10 @@
           var width = stage.getAttribute('width');
           var height = stage.getAttribute('height');
 
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.clearRect(0, 0, width, height);
+
+          ctx.translate(-cam.x, -cam.y);
 
           states.forEach(function(state, i) {
             renderState(ctx, state,
@@ -97,20 +104,20 @@
         var eventToCursorPosition = function(evt){
           var rect = stage.getBoundingClientRect();
           return {
-            x: (evt.clientX - rect.left) / (rect.right - rect.left) * stage.width,
-            y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * stage.height
+            x: (evt.clientX - rect.left) / (rect.right - rect.left) * stage.width + cam.x,
+            y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * stage.height + cam.y
           };
         }
 
         var onDragStart = render;
         var onDragEnd = render;
 
-        var onDragMove = createDragMoveHandler(states, render);
+        var onDragMove = createDragMoveHandler(states, render, createPanHandler(cam, render));
 
         var hitTest = function(evt, pos) {
           return states.reduce(function(prev, curr, idx) {
             return vecDistance(pos, curr.pos) < 80 ? idx : prev;
-          }, null);
+          }, -1);
         };
 
         var dragState = setupDrag(stage, eventToCursorPosition, hitTest,onDragStart, onDragMove, onDragEnd);

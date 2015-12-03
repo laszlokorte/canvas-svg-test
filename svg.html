@@ -19,6 +19,9 @@
       <p>
         You can move the state bubbles by dragging them with your mouse.
       </p>
+      <p>
+        Move the camera by dragging the background.
+      </p>
       <h3>Advantages</h3>
       <ul>
         <li>Styleable via CSS</li>
@@ -33,6 +36,8 @@
     <script type="text/javascript">
       var setup = function(stage) {
         var states = loadFSM();
+
+        var cam = {x:0,y:0};
 
         var renderState = function(stage, index, state, active) {
           var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, class: 'state' + (active ? ' active' : ''), 'stroke-width': '5'});
@@ -52,7 +57,7 @@
           var height = stage.getAttribute('height');
 
           clearSVG(stage);
-          stage.setAttribute('viewBox', '0 0 '+ width + ' ' + height);
+          stage.setAttribute('viewBox', cam.x + ' '+cam.y+' '+ width + ' ' + height);
 
           states.forEach(function(state, i) {
             var state = states[i];
@@ -82,12 +87,12 @@
         var onDragStart = render;
         var onDragEnd = render;
 
-        var onDragMove = createDragMoveHandler(states, render);
+        var onDragMove = createDragMoveHandler(states, render, createPanHandler(cam, render));
 
         var hitTest = function(evt, pos) {
           var idx = evt.target.getAttribute('stateIdx');
 
-          return (idx || null) && parseInt(idx, 10);
+          return idx ? parseInt(idx, 10) : -1;
         };
 
         var dragState = setupDrag(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd);

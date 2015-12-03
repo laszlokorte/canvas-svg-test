@@ -127,8 +127,9 @@
       var cursor = pos(evtMove);
 
       move(dragState.activeState, cursor.x - mouseOffset.x, cursor.y - mouseOffset.y);
-      mouseOffset.x = cursor.x;
-      mouseOffset.y = cursor.y;
+      var cursorNew = pos(evtMove);
+      mouseOffset.x = cursorNew.x;
+      mouseOffset.y = cursorNew.y;
     };
 
     var releaseListener = function(evtUp) {
@@ -210,8 +211,13 @@
     ];
   };
 
-  var createDragMoveHandler = function(states, render) {
+  var createDragMoveHandler = function(states, render, pan) {
     return function(element, deltaX, deltaY) {
+      if(element === -1) {
+        pan && pan(deltaX, deltaY);
+        return;
+      }
+
       var state = states[element];
       state.pos.x = clamp(state.pos.x + deltaX, 0, 1200);
       state.pos.y = clamp(state.pos.y + deltaY, 0, 600);
@@ -220,6 +226,15 @@
     };
   };
 
+  var createPanHandler = function(cam, render) {
+    return function(dx, dy) {
+      cam.x -= dx;
+      cam.y -= dy;
+      render();
+    };
+  };
+
+  window.createPanHandler = createPanHandler;
   window.createDragMoveHandler = createDragMoveHandler;
   window.loadFSM = loadFSM;
   window.vecDistance = vecDistance;
