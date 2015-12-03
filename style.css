@@ -31,34 +31,60 @@ svg {
   fill: none;
 }
 
-svg > .state {
+.state {
   fill: lightgrey;
   stroke: darkgrey;
   transition: stroke-width 0.1s;
 }
 
-svg > .state.active {
+.state.active > .state-bubble {
   stroke-width: 10px;
 }
 
-svg > .transition {
+.transition-arrow {
   fill: FireBrick ;
-  stroke: FireBrick ;
-  transition: fill 0.1s, stroke 0.1s;
+  stroke: FireBrick;
+  stroke-width: 0;
+  pointer-events: visibleStroke;
 }
 
-svg > .transition:hover {
-  fill: FireBrick ;
-  stroke: FireBrick ;
+.transition-arrow:hover {
+  fill: crimson;
+  stroke: crimson;
 }
 
-svg > .transition > .label {
+.transition-arrow:hover .transition-arrow-line {
+  stroke-width: 12px;
+}
+
+.transition-arrow-line {
+  fill: none;
+  stroke-width: 8px;
+  transition: stroke 0.2s, stroke-width 0.2s;
+}
+
+.transition-arrow-line-hitarea {
+  fill: none;
+  stroke: none;
+  stroke-width: 40px;
+  pointer-events: stroke;
+}
+
+.transition-arrow-head {
+  transition: fill 0.2s;
+}
+
+.transition-label {
   font-size: 25pt;
   fill: black;
+  stroke: none;
+  stroke-width: 0;
   text-anchor: middle;
   alignment-baseline: central;
+  pointer: default;
 }
-svg > .state-name {
+
+.state-label {
   font-size: 30pt;
   fill: black;
   text-anchor: middle;

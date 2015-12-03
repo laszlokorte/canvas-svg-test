@@ -44,22 +44,25 @@
         var cam = createCamera();
 
         var renderState = function(stage, index, state, active) {
-          var circle = appendToSVG(stage,'circle',{cx:state.pos.x, cy:state.pos.y, r:70, class: 'state' + (active ? ' active' : ''), 'stroke-width': '5'});
+          var group = appendToSVG(stage,'g',{class: 'state' + (active ? ' active' : '')});
+          var circle = appendToSVG(group,'circle',{cx:state.pos.x, cy:state.pos.y, r:70, class: 'state-bubble', 'stroke-width': '5'});
           circle.setAttribute('stateIdx', index);
 
-          var label = appendToSVG(stage,'text',{x:state.pos.x, y:state.pos.y,class:'state-name'}, state.name);
+          var label = appendToSVG(group,'text',{x:state.pos.x, y:state.pos.y,class:'state-label'}, state.name);
         }
 
         var renderTransition = function(stage, source, target, label, preferredAngle) {
           var curve = curvedConnection(source.pos, target.pos, 80, preferredAngle);
 
-          var arrow = appendToSVG(stage, 'g', {class:'transition'});
-          var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), fill: 'none', 'stroke-width': '7'});
-          var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(',')});
+          var group = appendToSVG(stage, 'g', {class:'transition'});
+          var arrow = appendToSVG(group, 'g', {class:'transition-arrow'});
+          var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), class: 'transition-arrow-line'});
+          var lineHitArea = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), class: 'transition-arrow-line-hitarea'});
+          var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(','), class:'transition-arrow-head'});
 
           var aligns = ['start','middle','end'];
           var textPosition = curveLabelPosition(curve, 30);
-          var text = appendToSVG(arrow,'text',{x:textPosition.x, y:textPosition.y,'class':'label',style:'text-anchor:'+aligns[1+textPosition.align]}, label);
+          var text = appendToSVG(group,'text',{x:textPosition.x, y:textPosition.y,'class':'transition-label',style:'text-anchor:'+aligns[1+textPosition.align]}, label);
         }
 
         var doRender = function() {
