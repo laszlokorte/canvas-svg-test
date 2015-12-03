@@ -22,7 +22,6 @@ svg > .state {
   transition: stroke-width 0.1s;
 }
 
-svg > .state:hover,
 svg > .state.active {
   stroke-width: 10pt;
 }

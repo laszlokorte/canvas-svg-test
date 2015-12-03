@@ -22,7 +22,8 @@
           {
             pos: {x: 200, y: 200},
             transitions: [
-              {target: 1}
+              {target: 1},
+              {target: 0}
             ]
           },
           {
@@ -69,7 +70,7 @@
             ctx.arc(state.pos.x, state.pos.y, 70, 0, 2 * Math.PI, false);
             ctx.fillStyle = 'lightgrey';
             ctx.fill();
-            ctx.lineWidth = 5;
+            ctx.lineWidth = dragState.activeState ===i ? 10 : 5;
             ctx.strokeStyle = 'darkgrey';
             ctx.stroke();
           }
@@ -110,6 +111,39 @@
             }
           }
         }
+
+        function cursorPoint(evt){
+          var rect = stage.getBoundingClientRect();
+          return {
+            x: (evt.clientX - rect.left) / (rect.right - rect.left) * stage.width,
+            y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * stage.height
+          };
+        }
+
+        var dragStart = render;
+
+        var dragMove = function(element, deltaX, deltaY) {
+          states[element].pos.x = clamp(states[element].pos.x + deltaX, 0, 1200);
+          states[element].pos.y = clamp(states[element].pos.y + deltaY, 0, 600);
+
+          render();
+        };
+
+        var dragEnd = render;
+
+        var hit = function(evt, pos) {
+          for(var i=states.length-1;i>=0;i--) {
+            var state = states[i];
+
+            if(vecDistance(pos, state.pos) < 80) {
+              return i;
+            }
+          }
+
+          return null;
+        };
+
+        var dragState = setupDrag(stage, cursorPoint, hit, dragStart, dragMove, dragEnd);
 
         return function() {
           setStageSize(stage, 1200, 600);

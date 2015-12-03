@@ -18,7 +18,8 @@
           {
             pos: {x: 200, y: 200},
             transitions: [
-              {target: 1}
+              {target: 1},
+              {target: 0}
             ]
           },
           {
@@ -64,7 +65,7 @@
 
           for(var i=0,j=states.length;i<j;i++) {
             var state = states[i];
-            var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, class: 'state' + (activeState===i ? ' active' : ''), 'stroke-width': '5'});
+            var circle = appendToSVG(stage,'circle',{'cx':state.pos.x, 'cy':state.pos.y, r:70, class: 'state' + (dragState.activeState===i ? ' active' : ''), 'stroke-width': '5'});
             circle.setAttribute('stateIdx', i);
           }
 
@@ -92,52 +93,26 @@
           return pt.matrixTransform(stage.getScreenCTM().inverse());
         }
 
-        var activeState = null;
-        var mouseOffset = {x:0,y:0};
-        var oldPos = {x:0,y:0};
-        var moveListener = function(evtMove) {
-          evtMove.preventDefault();
-          var cursor = cursorPoint(evtMove);
-
-          states[activeState].pos.x = clamp(oldPos.x + cursor.x - mouseOffset.x, 0, 1200);
-          states[activeState].pos.y = clamp(oldPos.y + cursor.y - mouseOffset.y, 0, 600);
+        var dragStart = function(idx) {
+          render();
+        };
+        var dragMove = function(element, deltaX, deltaY) {
+          states[element].pos.x = clamp(states[element].pos.x + deltaX, 0, 1200);
+          states[element].pos.y = clamp(states[element].pos.y + deltaY, 0, 600);
 
           render();
         };
-
-        var releaseListener = function(evtUp) {
-          evtUp.preventDefault();
-
-          activeState = null;
-          mouseOffset.x = 0;
-          mouseOffset.y = 0;
-          oldPos.x = 0;
-          oldPos.y = 0;
-
-          document.removeEventListener('mousemove', moveListener);
-          document.removeEventListener('mouseup', releaseListener);
-
+        var dragEnd = function() {
           render();
         };
 
-        stage.addEventListener('mousedown', function(evtDown) {
-          evtDown.preventDefault();
+        var hit = function(evt, pos) {
+          var idx = evt.target.getAttribute('stateIdx');
 
-          var stateIdx = evtDown.target.getAttribute('stateIdx');
-          if(stateIdx !== null) {
-            activeState = parseInt(stateIdx, 10);
-            var cursor = cursorPoint(evtDown);
-            mouseOffset.x = cursor.x;
-            mouseOffset.y = cursor.y;
-            oldPos.x = states[activeState].pos.x;
-            oldPos.y = states[activeState].pos.y;
+          return (idx || null) && parseInt(idx, 10);
+        };
 
-            render();
-
-            document.addEventListener('mouseup', releaseListener);
-            document.addEventListener('mousemove', moveListener);
-          }
-        });
+        var dragState = setupDrag(stage, cursorPoint, hit, dragStart, dragMove, dragEnd);
 
         return function() {
           setStageSize(stage, 1200, 600);

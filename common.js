@@ -37,12 +37,20 @@
     var radExit = rad * (1 + 0.2*Math.sin(rad*0.9));
     var radEnter = rad * (1 - 0.2*Math.sin(rad*0.9));
 
-    var offsetMultiplier = distance-40 > offset*2 ? 1 : 0.7;
+    var offsetMultiplierEnter = 1;
+    var offsetMultiplierExit = 1;
+    if (distance < offset*2) {
+      offsetMultiplierEnter = 0.2;
+      offsetMultiplierExit = 0.5;
+    } else if (distance-40 < offset*2) {
+      offsetMultiplierEnter = 0.7;
+      offsetMultiplierExit = 0.7;
+    }
 
-    var offsetExitX = Math.sin(radExit) * offset * offsetMultiplier;
-    var offsetExitY = Math.cos(radExit) * offset * offsetMultiplier;
-    var offsetEnterX = Math.sin(radEnter) * (offset + 20) * offsetMultiplier;
-    var offsetEnterY = Math.cos(radEnter) * (offset + 20) * offsetMultiplier;
+    var offsetExitX = Math.sin(radExit) * offset * offsetMultiplierExit;
+    var offsetExitY = Math.cos(radExit) * offset * offsetMultiplierExit;
+    var offsetEnterX = Math.sin(radEnter) * (offset + 20) * offsetMultiplierEnter;
+    var offsetEnterY = Math.cos(radEnter) * (offset + 20) * offsetMultiplierEnter;
 
     var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
     var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
@@ -107,6 +115,62 @@
     return Math.min(Math.max(min, v), max);
   };
 
+  var setupDrag = function(target, pos, hit, start, move, end) {
+    var dragState = {
+      activeState : null,
+    };
+
+    var mouseOffset = {x:0,y:0};
+    var moveListener = function(evtMove) {
+      evtMove.preventDefault();
+      var cursor = pos(evtMove);
+
+      move(dragState.activeState, cursor.x - mouseOffset.x, cursor.y - mouseOffset.y);
+      mouseOffset.x = cursor.x;
+      mouseOffset.y = cursor.y;
+    };
+
+    var releaseListener = function(evtUp) {
+      evtUp.preventDefault();
+
+      dragState.activeState = null;
+      mouseOffset.x = 0;
+      mouseOffset.y = 0;
+
+      document.removeEventListener('mousemove', moveListener);
+      document.removeEventListener('mouseup', releaseListener);
+
+      end();
+    };
+
+    target.addEventListener('mousedown', function(evtDown) {
+      evtDown.preventDefault();
+
+      var cursor = pos(evtDown);
+      var stateIdx = hit(evtDown, cursor);
+      if(stateIdx !== null) {
+        dragState.activeState = stateIdx;
+        mouseOffset.x = cursor.x;
+        mouseOffset.y = cursor.y;
+
+        start(stateIdx);
+
+        document.addEventListener('mouseup', releaseListener);
+        document.addEventListener('mousemove', moveListener);
+      }
+    });
+
+    return dragState;
+  };
+
+  var vecDistance = function(a,b) {
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    return Math.sqrt(dx*dx+dy*dy);
+  }
+
+  window.vecDistance = vecDistance;
+  window.setupDrag = setupDrag;
   window.clamp = clamp;
   window.curvedConnection = curvedConnection;
   window.quadraticString = quadraticString;
