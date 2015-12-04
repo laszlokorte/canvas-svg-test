@@ -348,8 +348,8 @@
       }
 
       var state = states[element];
-      state.pos.x = clamp(state.pos.x + deltaX, -600, 600);
-      state.pos.y = clamp(state.pos.y + deltaY, -300, 300);
+      state.pos.x = state.pos.x + deltaX;
+      state.pos.y = state.pos.y + deltaY;
 
       render();
     };
@@ -358,13 +358,51 @@
   // create a callback function to be used in createDragMoveHandler for panning
   // cam: object which x and y properties should be set
   // render: render function to be called when data changes
-  var createPanHandler = function(cam, render, width, height) {
+  var createPanHandler = function(cam, render, clamp) {
     return function(dx, dy) {
-      cam.x = clamp(cam.x - dx, -width/2, width/2);
-      cam.y = clamp(cam.y - dy, -height/2, height/2);
+      var clamped = clamp(cam.x - dx, cam.y - dy);
+      cam.x = clamped.x;
+      cam.y = clamped.y;
       render();
     };
   };
+
+  var calculateBoundingBox = function(states, minWidth, minHeight) {
+    minWidth = minWidth || 0;
+    minHeight = minHeight || 0;
+
+    var xInterval = states.reduce(function(prev, state) {
+      return {
+        max: Math.max(prev.max, state.pos.x),
+        min: Math.min(prev.min, state.pos.x),
+      };
+    }, {min: -minWidth/2, max: minWidth/2});
+
+    var yInterval = states.reduce(function(prev, state) {
+      return {
+        max: Math.max(prev.max, state.pos.y),
+        min: Math.min(prev.min, state.pos.y),
+      };
+    }, {min: -minHeight/2, max: minHeight/2});
+
+    return {
+      minX: xInterval.min,
+      minY: yInterval.min,
+      maxX: xInterval.max,
+      maxY: yInterval.max,
+    };
+  }
+
+  var createDynamicClamper = function(states, minWidth, minHeight) {
+    return function(x,y) {
+      var box = calculateBoundingBox(states, minWidth, minHeight);
+
+      return {
+        x: clamp(x, box.minX, box.maxX),
+        y: clamp(y, box.minY, box.maxY),
+      };
+    }
+  }
 
   var createCamera = function() {
     return {x:0,y:0,zoom:1};
@@ -500,6 +538,7 @@
     }
   }
 
+  window.createDynamicClamper = createDynamicClamper;
   window.removeState = removeState;
   window.makeNodeCreator = makeNodeCreator;
   window.createStateAt = createStateAt;

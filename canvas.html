@@ -155,7 +155,7 @@
         var onDragStart = render;
         var onDragEnd = render;
 
-        var panHandler = createPanHandler(cam, render, 1200, 600);
+        var panHandler = createPanHandler(cam, render, createDynamicClamper(states,1200, 600));
         var onDragMove = createDragMoveHandler(states, render, panHandler);
 
         var hitTest = function(evt, pos) {
