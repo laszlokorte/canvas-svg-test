@@ -21,7 +21,11 @@
         You can move the state bubbles by <strong>dragging</strong> them with your mouse.
       </p>
       <p>
-        <strong>Move</strong> the camera by dragging the background. <strong>Scroll</strong> to zoom. <strong>DoubleClick</strong> to autolayout nodes.
+        <strong>Drag</strong> the empty space to move the camera. <strong>Scroll</strong> to zoom.
+      </p>
+      <p>
+        <strong>DoubleClick</strong> into empty space to autolayout nodes. <strong>DoubleClick</strong> onto node to delete.
+        <strong>Ctrl/Cmd-Click</strong> into empty spaces creates a node. <strong>Alt-Drag</strong> between nodes to create a connection.
       </p>
       <p>
 
@@ -42,6 +46,7 @@
       var setup = function(stage) {
         var states = loadFSM();
         var cam = createCamera();
+        var connector = createConnector();
 
         var colors = {
           border: 'darkgrey',
@@ -104,6 +109,37 @@
           ctx.fillText(label,textPosition.x,textPosition.y);
         };
 
+        var renderConnector = function(ctx, source, target, pos, preferredAngle) {
+          var targetPos = target === null ? pos : target.pos;
+          var curve = curvedConnection(source.pos, targetPos, 80, preferredAngle);
+
+          var arrowHead = curveArrowHead(curve, 50);
+
+          ctx.beginPath();
+          ctx.moveTo(curve[0], curve[1]);
+          ctx.bezierCurveTo(
+            curve[0]+curve[2],
+            curve[1]+curve[3],
+            curve[0]+curve[4],
+            curve[1]+curve[5],
+            curve[0]+curve[6],
+            curve[1]+curve[7]
+          );
+
+          ctx.strokeStyle = colors.line;
+          ctx.lineWidth = 8;
+
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(arrowHead[0], arrowHead[1]);
+          ctx.lineTo(arrowHead[2], arrowHead[3]);
+          ctx.lineTo(arrowHead[4], arrowHead[5]);
+
+          ctx.fillStyle = colors.line;
+          ctx.fill();
+        };
+
         var doRender = function() {
           var ctx = stage.getContext('2d');
           var width = parseInt(stage.getAttribute('width'), 10);
@@ -134,6 +170,10 @@
               var target = states[transition.target];
               renderTransition(ctx, state, target, ''+transition.condition, connectionPivotAngle + Math.PI);
             });
+
+            if (connector.source === stateIdx) {
+              renderConnector(ctx, state, (states[connector.target] || null), connector.pos, connectionPivotAngle + Math.PI);
+            }
           });
         };
 
@@ -152,24 +192,25 @@
           };
         }
 
-        var onDragStart = render;
-        var onDragEnd = render;
-
-        var panHandler = createPanHandler(cam, render, createDynamicClamper(states,1200, 600));
-        var onDragMove = createDragMoveHandler(states, render, panHandler);
-
         var hitTest = function(evt, pos) {
           return states.reduce(function(prev, curr, idx) {
             return vecDistance(pos, curr.pos) < 80 ? idx : prev;
-          }, -1);
+          }, null);
         };
 
         var createNode = makeNodeCreator(states);
+        var createConnection = makeConnectionCreator(states);
+
+
+        var panHandler = createPanHandler(cam, render, createDynamicClamper(states,1200, 600));
+
+        var dragHandler = createDragHandler(hitTest, states, createNode, createConnection, connector, render, panHandler);
 
         var onZoom = createZoomHandler(cam, render, 0.3, 3, panHandler);
 
-        var onDoubleClick = function(element) {
-          if(element === -1) {
+        var onDoubleClick = function(evt, pos) {
+          var element = hitTest(evt, pos);
+          if(element === null) {
             arangeStates(states);
             cam.zoom = 0.7;
             cam.x = 0;
@@ -181,7 +222,7 @@
           render();
         };
 
-        var dragState = setupMouseHandler(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom, onDoubleClick, createNode);
+        var dragState = setupMouseHandler(stage, eventToCursorPosition, hitTest, dragHandler, onZoom, onDoubleClick);
 
         return function() {
           setStageSize(stage, 1200, 600);

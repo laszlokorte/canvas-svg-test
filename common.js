@@ -210,20 +210,20 @@
   // start: a callback function which is called when the dragging starts
   // move: a callback function which is called when the mouse moves during dragging
   // end: a callback function which is called when dragging stops
-  var setupMouseHandler = function(target, pos, hit, start, move, end, zoom, doubleClick, meta) {
+  var setupMouseHandler = function(target, pos, hit, dragHandler, zoom, doubleClick) {
     var dragState = {
-      activeState : null
+      mode: null,
+      position: {
+        x: 0,
+        y: 0,
+      }
     };
 
     var mouseOffset = {x:0,y:0};
     var moveListener = function(evtMove) {
       evtMove.preventDefault();
       var cursor = pos(evtMove);
-      var activeState = dragState.activeState;
-      var deltaX = cursor.x - mouseOffset.x;
-      var deltaY = cursor.y - mouseOffset.y
-
-      move(activeState, deltaX, deltaY);
+      dragHandler.move(evtMove, cursor, dragState.mode);
       var cursorNew = pos(evtMove);
       mouseOffset.x = cursorNew.x;
       mouseOffset.y = cursorNew.y;
@@ -232,7 +232,10 @@
     var releaseListener = function(evtUp) {
       evtUp.preventDefault();
 
-      dragState.activeState = null;
+      var mode = dragState.mode;
+      var cursor = pos(evtUp);
+
+      dragState.mode = null;
 
       mouseOffset.x = 0;
       mouseOffset.y = 0;
@@ -240,23 +243,24 @@
       document.removeEventListener('mousemove', moveListener);
       document.removeEventListener('mouseup', releaseListener);
 
-      end && end();
+      dragHandler.end(evtUp, cursor, mode);
     };
 
     target.addEventListener('mousedown', function(evtDown) {
       evtDown.preventDefault();
 
       var cursor = pos(evtDown);
-      var stateIdx = evtDown.metaKey ? meta(cursor) : hit(evtDown, cursor);
-      if(stateIdx !== null) {
-        dragState.activeState = stateIdx;
+      var dragMode = (dragHandler.start(evtDown, cursor)) || null;
+      if(dragMode !== null) {
+        dragState.mode = dragMode;
+
         mouseOffset.x = cursor.x;
         mouseOffset.y = cursor.y;
 
         document.addEventListener('mouseup', releaseListener);
         document.addEventListener('mousemove', moveListener);
 
-        start && start(stateIdx);
+        moveListener(evtDown);
       }
     });
 
@@ -273,10 +277,8 @@
     target.addEventListener('dblclick', function(dblClickEvt) {
       dblClickEvt.preventDefault();
       var cursor = pos(dblClickEvt);
-      var element = hit(dblClickEvt, cursor);
-      if(element !== null) {
-        doubleClick && doubleClick(element);
-      }
+
+      doubleClick && doubleClick(dblClickEvt, cursor);
     });
 
     return dragState;
@@ -337,26 +339,99 @@
     ];
   };
 
-  // creates a callback function to be used as move callback in stupMouseHandler
-  // states: the graph object containing the draggable states
-  // render: the render function to be called after data changes
-  // pan: the callback being called for panning the camera
-  var createDragMoveHandler = function(states, render, pan) {
-    return function(element, deltaX, deltaY) {
-      if(element === -1) {
-        pan && pan(deltaX, deltaY);
-        return;
-      }
+  var createDragHandler = function(hitTest, states, createNode, createConnection, connector, render, pan) {
+    return {
+      start: function(evt, pos) {
+        var stateIdx = hitTest(evt, pos);
 
-      var state = states[element];
-      state.pos.x = state.pos.x + deltaX;
-      state.pos.y = state.pos.y + deltaY;
+        if(stateIdx === null) {
+          if(evt.metaKey || evt.ctrlKey) {
+            var newState = createNode(pos);
+            return {
+              type: 'move',
+              state: newState,
+              initialPos: {
+                x: pos.x,
+                y: pos.y
+              },
+              offset: {
+                x: 0,
+                y: 0,
+              }
+            };
+          } else {
+            return {
+              type: 'pan',
+              initialPos: {
+                x: pos.x,
+                y: pos.y,
+              },
+            };
+          }
+        } else if(evt.shiftKey) {
+          return {
+            type: 'pan',
+            initialPos: {
+              x: pos.x,
+              y: pos.y,
+            },
+          };
+        } else if(evt.altKey) {
+          return {
+            type: 'connect',
+            state: stateIdx,
+          };
+        } else {
+          var state = states[stateIdx];
+          return {
+            type: 'move',
+            state: stateIdx,
+            initialPos: {
+              x: state.pos.x,
+              y: state.pos.y
+            },
+            offset: {
+              x: pos.x - state.pos.x,
+              y: pos.y - state.pos.y,
+            }
+          };
+        }
 
-      render();
+        return null;
+      },
+      move: function(evt, pos, mode) {
+        if(mode.type === 'pan') {
+          pan && pan(pos.x - mode.initialPos.x, pos.y - mode.initialPos.y);
+        } else if(mode.type === 'move') {
+          var state = states[mode.state];
+          state.pos.x = pos.x - mode.offset.x;
+          state.pos.y = pos.y - mode.offset.y;
+        } else if(mode.type === 'connect') {
+          connector.pos.x = pos.x;
+          connector.pos.y = pos.y;
+          connector.source = mode.state;
+          connector.target = hitTest(evt, pos);
+        }
+        render();
+      },
+      end: function(evt, pos, mode) {
+        if(mode.type === 'connect') {
+          var target = hitTest(evt, pos);
+
+          if(target !== null) {
+            createConnection(mode.state, target);
+          }
+
+          connector.pos.x = null;
+          connector.pos.y = null;
+          connector.source = null;
+          connector.target = null;
+        }
+        render();
+      },
     };
   };
 
-  // create a callback function to be used in createDragMoveHandler for panning
   // cam: object which x and y properties should be set
   // render: render function to be called when data changes
   var createPanHandler = function(cam, render, clamp) {
@@ -407,6 +482,14 @@
 
   var createCamera = function() {
     return {x:0,y:0,zoom:1};
+  };
+
+  var createConnector = function() {
+    return {
+      pos: {x:null,y:null},
+      source: null,
+      target: null,
+    };
   };
 
   var calculateTransitionPivotAngle = function(states, stateIdx) {
@@ -523,6 +606,20 @@
     };
   };
 
+  var makeConnectionCreator = function(states) {
+    return function(from, to) {
+      if(states[from].transitions.some(function(t) {
+        return t.target === to;
+      })) {
+        return;
+      }
+      states[from].transitions.push({
+        target: to,
+        condition: 1,
+      });
+    };
+  };
+
   var removeState = function(states, element) {
     states.splice(element, 1);
     for(var i=0;i<states.length;i++) {
@@ -542,15 +639,17 @@
   window.createDynamicClamper = createDynamicClamper;
   window.removeState = removeState;
   window.makeNodeCreator = makeNodeCreator;
+  window.makeConnectionCreator = makeConnectionCreator;
   window.createStateAt = createStateAt;
   window.makeRenderer = makeRenderer;
   window.arangeStates = arangeStates;
   window.createZoomHandler = createZoomHandler;
   window.calculateTransitionPivotAngle = calculateTransitionPivotAngle;
   window.createCamera = createCamera;
+  window.createConnector = createConnector;
   window.curveLabelPosition = curveLabelPosition;
   window.createPanHandler = createPanHandler;
-  window.createDragMoveHandler = createDragMoveHandler;
+  window.createDragHandler = createDragHandler;
   window.loadFSM = loadFSM;
   window.vecDistance = vecDistance;
   window.setupMouseHandler = setupMouseHandler;

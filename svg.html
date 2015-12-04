@@ -20,7 +20,11 @@
         You can move the state bubbles by <strong>dragging</strong> them with your mouse.
       </p>
       <p>
-        <strong>Move</strong> the camera by dragging the background. <strong>Scroll</strong> to zoom. <strong>DoubleClick</strong> to autolayout nodes.
+        <strong>Drag</strong> the empty space to move the camera. <strong>Scroll</strong> to zoom.
+      </p>
+      <p>
+        <strong>DoubleClick</strong> into empty space to autolayout nodes. <strong>DoubleClick</strong> onto node to delete.
+        <strong>Ctrl/Cmd-Click</strong> into empty spaces creates a node. <strong>Alt-Drag</strong> between nodes to create a connection.
       </p>
       <h3>Advantages</h3>
       <ul>
@@ -33,6 +37,7 @@
       <h3>Known Issues</h3>
       <ul>
         <li>Safari does not handle events in the empty space between the nodes.</li>
+        <li>Double Click is not recognized on SVG (because mousedown changes the DOM)</li>
       </ul>
     </div>
 
@@ -40,8 +45,8 @@
     <script type="text/javascript">
       var setup = function(stage) {
         var states = loadFSM();
-
         var cam = createCamera();
+        var connector = createConnector();
 
         var renderState = function(stage, index, state, active) {
           var group = appendToSVG(stage,'g',{class: 'state' + (active ? ' active' : '')});
@@ -63,7 +68,20 @@
           var aligns = ['start','middle','end'];
           var textPosition = curveLabelPosition(curve, 30);
           var text = appendToSVG(group,'text',{x:textPosition.x, y:textPosition.y,'class':'transition-label',style:'text-anchor:'+aligns[1+textPosition.align]}, label);
-        }
+        };
+
+        var renderConnector = function(stage, source, target, pos, preferredAngle) {
+          var targetPos = target === null ? pos : target.pos;
+          var curve = curvedConnection(source.pos, targetPos, 80, preferredAngle);
+
+          var arrowHead = curveArrowHead(curve, 50);
+
+          var group = appendToSVG(stage, 'g', {class:'transition'});
+          var arrow = appendToSVG(group, 'g', {class:'transition-arrow'});
+          var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), class: 'transition-arrow-line'});
+          var lineHitArea = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), class: 'transition-arrow-line-hitarea'});
+          var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(','), class:'transition-arrow-head'});
+        };
 
         var doRender = function() {
           var width = parseInt(stage.getAttribute('width'), 10);
@@ -92,6 +110,10 @@
 
               renderTransition(stage, state, target, ''+transition.condition, connectionPivotAngle + Math.PI);
             });
+
+            if (connector.source === stateIdx) {
+              renderConnector(stage, state, (states[connector.target] || null), connector.pos, connectionPivotAngle + Math.PI);
+            }
           });
         };
 
@@ -107,23 +129,21 @@
           };
         })();
 
-        var onDragStart = render;
-        var onDragEnd = render;
-
         var panHandler = createPanHandler(cam, render, createDynamicClamper(states,1200, 600));
-        var onDragMove = createDragMoveHandler(states, render, panHandler);
 
         var hitTest = function(evt, pos) {
           var idx = evt.target.getAttribute('stateIdx');
-          return idx ? parseInt(idx, 10) : -1;
+          return idx ? parseInt(idx, 10) : null;
         };
 
         var createNode = makeNodeCreator(states);
+        var createConnection = makeConnectionCreator(states);
 
         var onZoom = createZoomHandler(cam, render, 0.3, 3, panHandler);
 
-        var onDoubleClick = function(element) {
-          if(element === -1) {
+        var onDoubleClick = function(evt, pos) {
+          var element = hitTest(evt, pos);
+          if(element === null) {
             arangeStates(states);
             cam.zoom = 0.7;
             cam.x = 0;
@@ -135,7 +155,9 @@
           render();
         };
 
-        var dragState = setupMouseHandler(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom, onDoubleClick, createNode);
+        var dragHandler = createDragHandler(hitTest, states, createNode, createConnection, connector, render, panHandler);
+
+        var dragState = setupMouseHandler(stage, eventToCursorPosition, hitTest, dragHandler, onZoom, onDoubleClick, createNode);
 
         return function() {
           setStageSize(stage, 1200, 600);
