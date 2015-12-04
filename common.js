@@ -439,7 +439,6 @@
       );
     });
 
-    console.log(stateIds);
     var firstState = states[stateIds[0]];
     for(var i=0;i<count;i++) {
       var state = states[stateIds[i]];
