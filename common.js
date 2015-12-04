@@ -222,12 +222,12 @@
       var deltaX = cursor.x - mouseOffset.x;
       var deltaY = cursor.y - mouseOffset.y
 
-      throttle(function() {
+      //throttle(function() {
         move(activeState, deltaX, deltaY);
         var cursorNew = pos(evtMove);
         mouseOffset.x = cursorNew.x;
         mouseOffset.y = cursorNew.y;
-      });
+      //});
 
     };
 
@@ -266,15 +266,19 @@
       zoomEvt.preventDefault();
 
       var cursorNew = pos(zoomEvt);
-      var wheel = zoomEvt.deltaY / -90;
+      var wheel = zoomEvt.deltaY / -40;
       var factor = Math.pow(1 + Math.abs(wheel)/2 , wheel > 0 ? 1 : -1);
 
-      throttle(zoom.bind(null, factor, cursorNew));
+      zoom(factor, cursorNew);
     });
 
     target.addEventListener('dblclick', function(dblClickEvt) {
       dblClickEvt.preventDefault();
-      doubleClick && doubleClick();
+      var cursor = pos(dblClickEvt);
+      var element = hit(dblClickEvt, cursor);
+      if(element !== null) {
+        doubleClick && doubleClick(element);
+      }
     });
 
     return dragState;
@@ -429,8 +433,8 @@
     stateIds.sort(function(a,b) {
       var stateA = states[a];
       var stateB = states[b];
-      var angleA = Math.atan2(-(stateA.pos.y - 70), -(stateA.pos.x));
-      var angleB = Math.atan2(-(stateB.pos.y - 70), -(stateB.pos.x));
+      var angleA = Math.atan2(-(stateA.pos.y), -(stateA.pos.x));
+      var angleB = Math.atan2(-(stateB.pos.y), -(stateB.pos.x));
 
       return Math.sign(
         angleB
@@ -444,7 +448,7 @@
       var state = states[stateIds[i]];
       var angle = -Math.PI/count/2 - Math.PI * 2 * i / count;
       state.pos.x = Math.cos(angle) * 300;
-      state.pos.y = Math.sin(angle) * 300 + 70;
+      state.pos.y = Math.sin(angle) * 300;
     }
   };
 
@@ -482,8 +486,25 @@
       states.push(createStateAt(pos));
       return states.length-1;
     };
+  };
+
+  var removeState = function(states, element) {
+    states.splice(element, 1);
+    for(var i=0;i<states.length;i++) {
+      var state = states[i];
+      state.transitions = state.transitions.filter(function(t) {
+        return t.target !== element;
+      });
+
+      state.transitions.forEach(function(t) {
+        if(t.target > element) {
+          t.target -= 1;
+        }
+      })
+    }
   }
 
+  window.removeState = removeState;
   window.makeNodeCreator = makeNodeCreator;
   window.createStateAt = createStateAt;
   window.makeRenderer = makeRenderer;

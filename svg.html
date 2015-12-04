@@ -122,11 +122,15 @@
 
         var onZoom = createZoomHandler(cam, render, 0.3, 3, panHandler);
 
-        var onDoubleClick = function() {
-          arangeStates(states);
-          cam.zoom = 0.7;
-          cam.x = 0;
-          cam.y = 0;
+        var onDoubleClick = function(element) {
+          if(element === -1) {
+            arangeStates(states);
+            cam.zoom = 0.7;
+            cam.x = 0;
+            cam.y = 0;
+          } else {
+            removeState(states, element);
+          }
 
           render();
         };
