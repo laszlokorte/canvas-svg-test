@@ -209,7 +209,7 @@
   // start: a callback function which is called when the dragging starts
   // move: a callback function which is called when the mouse moves during dragging
   // end: a callback function which is called when dragging stops
-  var setupMouseHandler = function(target, pos, hit, start, move, end, zoom, doubleClick) {
+  var setupMouseHandler = function(target, pos, hit, start, move, end, zoom, doubleClick, meta) {
     var dragState = {
       activeState : null
     };
@@ -249,7 +249,7 @@
       evtDown.preventDefault();
 
       var cursor = pos(evtDown);
-      var stateIdx = hit(evtDown, cursor);
+      var stateIdx = evtDown.metaKey ? meta(cursor) : hit(evtDown, cursor);
       if(stateIdx !== null) {
         dragState.activeState = stateIdx;
         mouseOffset.x = cursor.x;
@@ -425,10 +425,26 @@
   var arangeStates = function(states) {
     var count = states.length;
 
+    var stateIds = Array.apply(null, {length: count}).map(Number.call, Number);
+    stateIds.sort(function(a,b) {
+      var stateA = states[a];
+      var stateB = states[b];
+      var angleA = Math.atan2(-(stateA.pos.y - 70), -(stateA.pos.x));
+      var angleB = Math.atan2(-(stateB.pos.y - 70), -(stateB.pos.x));
+
+      return Math.sign(
+        angleB
+       -angleA
+      );
+    });
+
+    console.log(stateIds);
+    var firstState = states[stateIds[0]];
     for(var i=0;i<count;i++) {
-      var angle = -Math.PI/2 - Math.PI * 2 * i / count;
-      states[i].pos.x = Math.cos(angle) * 300;
-      states[i].pos.y = Math.sin(angle) * 300 + 70;
+      var state = states[stateIds[i]];
+      var angle = -Math.PI/count/2 - Math.PI * 2 * i / count;
+      state.pos.x = Math.cos(angle) * 300;
+      state.pos.y = Math.sin(angle) * 300 + 70;
     }
   };
 
@@ -453,6 +469,23 @@
       throttle.bind(null, renderFunction);
   };
 
+  var createStateAt = function(pos) {
+    return {
+      name: "X",
+      pos: {x: pos.x, y: pos.y},
+      transitions: []
+    };
+  };
+
+  var makeNodeCreator = function(states) {
+    return function(pos) {
+      states.push(createStateAt(pos));
+      return states.length-1;
+    };
+  }
+
+  window.makeNodeCreator = makeNodeCreator;
+  window.createStateAt = createStateAt;
   window.makeRenderer = makeRenderer;
   window.arangeStates = arangeStates;
   window.createZoomHandler = createZoomHandler;

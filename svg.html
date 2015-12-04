@@ -118,6 +118,8 @@
           return idx ? parseInt(idx, 10) : -1;
         };
 
+        var createNode = makeNodeCreator(states);
+
         var onZoom = createZoomHandler(cam, render, 0.3, 3, panHandler);
 
         var onDoubleClick = function() {
@@ -129,7 +131,7 @@
           render();
         };
 
-        var dragState = setupMouseHandler(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom, onDoubleClick);
+        var dragState = setupMouseHandler(stage, eventToCursorPosition, hitTest, onDragStart, onDragMove, onDragEnd, onZoom, onDoubleClick, createNode);
 
         return function() {
           setStageSize(stage, 1200, 600);
