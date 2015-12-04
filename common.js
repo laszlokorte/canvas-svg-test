@@ -105,8 +105,8 @@
       startY = fromY + refOffsetY;
       ctrlAX = refOffsetX - extraX;
       ctrlAY = refOffsetY - extraY;
-      ctrlBX = deltaX + refOffsetX + extraX;
-      ctrlBY = deltaY + refOffsetY + extraY;
+      ctrlBX = refOffsetX + extraX + deltaX;
+      ctrlBY = refOffsetY + extraY + deltaY;
       endX = deltaX + rotatedDeltaX * 10;
       endY = deltaY + rotatedDeltaY * 20;
     }
