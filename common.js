@@ -222,13 +222,10 @@
       var deltaX = cursor.x - mouseOffset.x;
       var deltaY = cursor.y - mouseOffset.y
 
-      //throttle(function() {
-        move(activeState, deltaX, deltaY);
-        var cursorNew = pos(evtMove);
-        mouseOffset.x = cursorNew.x;
-        mouseOffset.y = cursorNew.y;
-      //});
-
+      move(activeState, deltaX, deltaY);
+      var cursorNew = pos(evtMove);
+      mouseOffset.x = cursorNew.x;
+      mouseOffset.y = cursorNew.y;
     };
 
     var releaseListener = function(evtUp) {
