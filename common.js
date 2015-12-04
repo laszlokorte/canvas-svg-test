@@ -49,7 +49,7 @@
 
     var offsetMultiplierEnter = 1;
     var offsetMultiplierExit = 1;
-    var reflexive = distance < offset*2;
+    var compact = distance < offset*2;
 
     if (distance < offset*2) {
       offsetMultiplierEnter = 0.2;
@@ -67,7 +67,8 @@
     var adjustedDeltaX = deltaX-offsetEnterX-offsetExitX;
     var adjustedDeltaY = deltaY-offsetEnterY-offsetExitY;
 
-    var bending = Math.sqrt(distance) / 400;
+    var adjustedDistance = Math.sqrt(adjustedDeltaX*adjustedDeltaX+adjustedDeltaY*adjustedDeltaY);
+    var bending = (Math.log(adjustedDistance)+20) / adjustedDistance;
 
     var ctrlPointX = (adjustedDeltaX / 2 + adjustedDeltaY * bending);
     var ctrlPointY = (adjustedDeltaY / 2 - adjustedDeltaX * bending);
@@ -81,19 +82,19 @@
     var endX = adjustedDeltaX;
     var endY = adjustedDeltaY;
 
-    if(reflexive) {
+    if(compact) {
       var fromX = from.x;
       var fromY = from.y;
-      var samePoint = Math.abs(distance) < 1;
-      if (samePoint) {
+      var reflexive = Math.abs(distance) < 1;
+      if (reflexive) {
         distance = offset;
-        deltaX = distance*Math.sin(preferredAngle);
-        deltaY = -distance*Math.cos(preferredAngle);
+        deltaX = -distance*Math.sin(preferredAngle);
+        deltaY = distance*Math.cos(preferredAngle);
         fromX -= deltaX/2;
         fromY -= deltaY/2;
       }
-      var rotatedDeltaX = -deltaY / distance;
-      var rotatedDeltaY =  deltaX / distance;
+      var rotatedDeltaX = deltaY / distance;
+      var rotatedDeltaY =  -deltaX / distance;
       var refOffsetX = rotatedDeltaX * offset;
       var refOffsetY = rotatedDeltaY * offset;
 
