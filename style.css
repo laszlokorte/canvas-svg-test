@@ -35,6 +35,7 @@ svg {
   fill: lightgrey;
   stroke: darkgrey;
   transition: stroke-width 0.1s;
+  cursor: move;
 }
 
 .state.active > .state-bubble {
