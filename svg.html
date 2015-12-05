@@ -71,15 +71,14 @@
         };
 
         var renderConnector = function(stage, source, target, pos, preferredAngle) {
-          var targetPos = target === null ? pos : target.pos;
-          var curve = curvedConnection(source.pos, targetPos, 80, preferredAngle);
+          var invalid = target === null;
+          var targetPos = invalid ? pos : target.pos;
+          var curve = curvedConnection(source.pos, targetPos, 80, preferredAngle, invalid);
 
           var arrowHead = curveArrowHead(curve, 50);
 
-          var group = appendToSVG(stage, 'g', {class:'transition'});
-          var arrow = appendToSVG(group, 'g', {class:'transition-arrow'});
+          var arrow = appendToSVG(stage, 'g', {class:'transition-arrow state-edit' + (invalid ? ' state-invalid':'')});
           var line = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), class: 'transition-arrow-line'});
-          var lineHitArea = appendToSVG(arrow,'path',{d:cubicString.apply(null, curve), class: 'transition-arrow-line-hitarea'});
           var head = appendToSVG(arrow,'polygon',{points:curveArrowHead(curve, 50).join(','), class:'transition-arrow-head'});
         };
 
@@ -112,7 +111,7 @@
             });
 
             if (connector.source === stateIdx) {
-              renderConnector(stage, state, (states[connector.target] || null), connector.pos, connectionPivotAngle + Math.PI);
+              renderConnector(stage, state, (connector.target !== connector.source && states[connector.target] || null), connector.pos, connectionPivotAngle + Math.PI);
             }
           });
         };

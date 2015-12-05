@@ -53,6 +53,8 @@
           fill: 'lightgrey',
           font: 'black',
           line: 'FireBrick',
+          lineEdit: 'black',
+          lineEditInvalid: 'grey',
         };
 
         var renderState = function(ctx, state, active) {
@@ -110,8 +112,9 @@
         };
 
         var renderConnector = function(ctx, source, target, pos, preferredAngle) {
-          var targetPos = target === null ? pos : target.pos;
-          var curve = curvedConnection(source.pos, targetPos, 80, preferredAngle);
+          var invalid = target === null;
+          var targetPos = invalid ? pos : target.pos;
+          var curve = curvedConnection(source.pos, targetPos, 80, preferredAngle, invalid);
 
           var arrowHead = curveArrowHead(curve, 50);
 
@@ -126,7 +129,7 @@
             curve[1]+curve[7]
           );
 
-          ctx.strokeStyle = colors.line;
+          ctx.strokeStyle = invalid ? colors.lineEditInvalid : colors.lineEdit;
           ctx.lineWidth = 8;
 
           ctx.stroke();
@@ -136,8 +139,9 @@
           ctx.lineTo(arrowHead[2], arrowHead[3]);
           ctx.lineTo(arrowHead[4], arrowHead[5]);
 
-          ctx.fillStyle = colors.line;
+          ctx.fillStyle = invalid ? colors.lineEditInvalid : colors.lineEdit;
           ctx.fill();
+          ctx.globalAlpha = 1;
         };
 
         var doRender = function() {
@@ -172,7 +176,7 @@
             });
 
             if (connector.source === stateIdx) {
-              renderConnector(ctx, state, (states[connector.target] || null), connector.pos, connectionPivotAngle + Math.PI);
+              renderConnector(ctx, state, (connector.target !== connector.source && states[connector.target] || null), connector.pos, connectionPivotAngle + Math.PI);
             }
           });
         };

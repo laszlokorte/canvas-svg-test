@@ -35,7 +35,7 @@
   // from and to are {x:,y:}, offset is a radius around
   // the points that should not be crossed by the line
   // returns [startx, starty, ctrlX, ctrlY, endX, endY]
-  var curvedConnection = function(from, to, offset, preferredAngle) {
+  var curvedConnection = function(from, to, offset, preferredAngle, streight) {
     if (typeof preferredAngle === 'undefined') {
       preferredAngle = Math.PI;
     }
@@ -49,11 +49,14 @@
 
     var offsetMultiplierEnter = 1;
     var offsetMultiplierExit = 1;
-    var compact = distance < offset*2;
+    var compact = distance < offset*2 && !streight;
 
-    if (distance < offset*2) {
+    if (compact) {
       offsetMultiplierEnter = 0.2;
       offsetMultiplierExit = 0.5;
+    } else if (streight) {
+      offsetMultiplierEnter = 0;
+      offsetMultiplierExit = 0.2;
     } else if (distance-40 < offset*2) {
       offsetMultiplierEnter = 0.7;
       offsetMultiplierExit = 0.7;

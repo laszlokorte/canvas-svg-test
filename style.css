@@ -43,10 +43,21 @@ svg {
 }
 
 .transition-arrow {
-  fill: FireBrick ;
+  fill: FireBrick;
   stroke: FireBrick;
   stroke-width: 0;
   pointer-events: visibleStroke;
+}
+
+.transition-arrow.state-edit {
+  pointer-events: none;
+  fill: black;
+  stroke: black;
+}
+
+.transition-arrow.state-invalid {
+  fill: grey;
+  stroke: grey;
 }
 
 .transition-arrow:hover {
