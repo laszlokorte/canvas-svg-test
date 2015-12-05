@@ -210,9 +210,9 @@
   // target: the element to bind the listeners to
   // pos: a function (evt)->{x,y} the convert the event into a position
   // hit: a function (evt, {x,y}) -> int to convert a position into an identifier, -1 for camera panning
-  // start: a callback function which is called when the dragging starts
-  // move: a callback function which is called when the mouse moves during dragging
-  // end: a callback function which is called when dragging stops
+  // dragHandler: an object with three callback functions: {start, move end}
+  // zoom: the zoom callback
+  // doubleclick: the double click callback
   var setupMouseHandler = function(target, pos, hit, dragHandler, zoom, doubleClick) {
     var dragState = {
       mode: null,
@@ -263,7 +263,7 @@
         document.addEventListener('mouseup', releaseListener);
         document.addEventListener('mousemove', moveListener);
 
-        moveListener(evtDown);
+        dragHandler.move(evtDown, cursor, dragState.mode);
       }
     });
 
@@ -407,8 +407,15 @@
           pan && pan(pos.x - mode.initialPos.x, pos.y - mode.initialPos.y);
         } else if(mode.type === 'move') {
           var state = states[mode.state];
-          state.pos.x = pos.x - mode.offset.x;
-          state.pos.y = pos.y - mode.offset.y;
+          var newX = pos.x - mode.offset.x;
+          var newY = pos.y - mode.offset.y;
+          if((mode.offset.x !== 0 || mode.offset.y !== 0) &&
+            state.pos.x === newX && state.pos.y === newY) {
+            return;
+          }
+
+          state.pos.x = newX;
+          state.pos.y = newY;
         } else if(mode.type === 'connect') {
           connector.pos.x = pos.x;
           connector.pos.y = pos.y;
@@ -429,8 +436,8 @@
           connector.pos.y = null;
           connector.source = null;
           connector.target = null;
+          render();
         }
-        render();
       },
     };
   };
