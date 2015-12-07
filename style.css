@@ -105,6 +105,7 @@ svg > .background {
 .state-label {
   font-size: 30pt;
   fill: black;
+  stroke: none;
   text-anchor: middle;
   dominant-baseline: central;
   pointer-events: none;
