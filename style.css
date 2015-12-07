@@ -32,6 +32,10 @@ svg {
   fill: none;
 }
 
+svg > .background {
+  fill: white;
+}
+
 .state {
   fill: lightgrey;
   stroke: darkgrey;
