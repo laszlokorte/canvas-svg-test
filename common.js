@@ -404,6 +404,10 @@
       },
       move: function(evt, pos, mode) {
         if(mode.type === 'pan') {
+          if(mode.initialPos.x === pos.x
+          && mode.initialPos.y === pos.y) {
+            return;
+          }
           pan && pan(pos.x - mode.initialPos.x, pos.y - mode.initialPos.y);
         } else if(mode.type === 'move') {
           var state = states[mode.state];
