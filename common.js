@@ -580,7 +580,9 @@
     }
   };
 
-  var requestFrame = window.requestAnimationFrame.bind(window);
+  var requestFrame = (window.requestAnimationFrame || function(cb) {
+    this.setTimeout(cb, 16);
+  }).bind(window);
 
   var throttle = (function() {
     var id = null;
