@@ -4,10 +4,6 @@ body {
   padding: 0;
 }
 
-.github-fork-ribbon-wrapper .github-fork-ribbon {
-    background-color: black;
-}
-
 body > h1:first-child {
   text-align: center;
 }
